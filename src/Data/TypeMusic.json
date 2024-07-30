@@ -1,0 +1,98 @@
+[
+    {
+      "idTypeMusic": 1,
+      "nameTypeMusic": "Pop",
+      "description": "Nhạc Pop là thể loại nhạc phổ biến nhất hiện nay",
+      "music_list": [
+        {
+          "idMusic": 1,
+          "nameMusic": "Shape of You"
+        },
+        {
+          "idMusic": 3,
+          "nameMusic": "Levitating"
+        },
+        {
+          "idMusic": 6,
+          "nameMusic": "Senorita"
+        }
+      ],
+      "artist_list": [
+        {
+          "idArtist": "001",
+          "nameArtist": "John Doe"
+        },
+        {
+          "idArtist": "002",
+          "nameArtist": "Jane Smith"
+        }
+      ],
+      "NumberOfPlayed": 1000000,
+      "createdate": "2023-01-01"
+    },
+    {
+      "idTypeMusic": 2,
+      "nameTypeMusic": "R&B",
+      "description": "Nhạc R&B là thể loại nhạc soul và funk",
+      "music_list": [
+        {
+          "idMusic": 2,
+          "nameMusic": "Blinding Lights"
+        },
+        {
+          "idMusic": 8,
+          "nameMusic": "Old Town Road"
+        }
+      ],
+      "artist_list": [
+        {
+          "idArtist": "002",
+          "nameArtist": "Jane Smith"
+        },
+        {
+          "idArtist": "003",
+          "nameArtist": "Michael Johnson"
+        }
+      ],
+      "NumberOfPlayed": 500000,
+      "createdate": "2023-02-01"
+    },
+    {
+      "idTypeMusic": 3,
+      "nameTypeMusic": "Indie",
+      "description": "Nhạc Indie là thể loại nhạc độc lập",
+      "music_list": [
+        {
+          "idMusic": 5,
+          "nameMusic": "Dance Monkey"
+        }
+      ],
+      "artist_list": [
+        {
+          "idArtist": "004",
+          "nameArtist": "Emily Davis"
+        }
+      ],
+      "NumberOfPlayed": 200000,
+      "createdate": "2023-03-01"
+    },
+    {
+      "idTypeMusic": 4,
+      "nameTypeMusic": "Hip-Hop",
+      "description": "Nhạc Hip-Hop là thể loại nhạc rap và hip-hop",
+      "music_list": [
+        {
+          "idMusic": 7,
+          "nameMusic": "Truth Hurts"
+        }
+      ],
+      "artist_list": [
+        {
+          "idArtist": "001",
+          "nameArtist": "John Doe"
+        }
+      ],
+      "NumberOfPlayed": 150000,
+      "createdate": "2023-04-01"
+    }
+  ]

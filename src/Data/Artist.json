@@ -1,0 +1,58 @@
+[
+    {
+      "idArtist": "001",
+      "nameArtist": "John Doe",
+      "total_music": [
+        {
+          "idMusic": 1,
+          "nameMusic": "Shape of You"
+        },
+        {
+          "idMusic": 3,
+          "nameMusic": "Levitating"
+        },
+        {
+          "idMusic": 7,
+          "nameMusic": "Senorita"
+        }
+      ],
+      "rating": 4.5,
+      "createdate": "2023-05-10"
+    },
+    {
+      "idArtist": "002",
+      "nameArtist": "Jane Smith",
+      "total_music": [
+        {
+          "idMusic": 2,
+          "nameMusic": "Blinding Lights"
+        }
+      ],
+      "rating": 4.2,
+      "createdate": "2022-11-15"
+    },
+    {
+      "idArtist": "003",
+      "nameArtist": "Michael Johnson",
+      "total_music": [
+        {
+          "idMusic": 4,
+          "nameMusic": "Bad Guy"
+        }
+      ],
+      "rating": 4.7,
+      "createdate": "2023-02-28"
+    },
+    {
+      "idArtist": "004",
+      "nameArtist": "Emily Davis",
+      "total_music": [
+        {
+          "idMusic": 5,
+          "nameMusic": "Dance Monkey"
+        }
+      ],
+      "rating": 4.4,
+      "createdate": "2023-08-20"
+    }
+  ]

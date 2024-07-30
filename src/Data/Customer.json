@@ -1,0 +1,58 @@
+[
+    {
+      "idCustomer": 1,
+      "nameCustomer": "Alice Smith",
+      "NumberOfPlayed": 150,
+      "HourPlayed": 20,
+      "CreateDate": "2024-01-15",
+      "favorite_artists": [
+        {
+          "idArtist": "001",
+          "nameArtist": "John Doe"
+        },
+        {
+          "idArtist": "002",
+          "nameArtist": "Jane Smith"
+        }
+      ]
+    },
+    {
+      "idCustomer": 2,
+      "nameCustomer": "Bob Johnson",
+      "NumberOfPlayed": 200,
+      "HourPlayed": 35,
+      "CreateDate": "2024-02-10",
+      "favorite_artists": [
+        {
+          "idArtist": "003",
+          "nameArtist": "Michael Johnson"
+        }
+      ]
+    },
+    {
+      "idCustomer": 3,
+      "nameCustomer": "Carol Davis",
+      "NumberOfPlayed": 180,
+      "HourPlayed": 25,
+      "CreateDate": "2024-03-22",
+      "favorite_artists": [
+        {
+          "idArtist": "001",
+          "nameArtist": "John Doe"
+        }
+      ]
+    },
+    {
+      "idCustomer": 4,
+      "nameCustomer": "David Wilson",
+      "NumberOfPlayed": 220,
+      "HourPlayed": 30,
+      "CreateDate": "2024-04-05",
+      "favorite_artists": [
+        {
+          "idArtist": "004",
+          "nameArtist": "Emily Davis"
+        }
+      ]
+    }
+  ]

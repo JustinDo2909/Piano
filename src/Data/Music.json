@@ -1,0 +1,90 @@
+[
+    {
+      "idMusic": 1,
+      "nameMusic": "Shape of You",
+      "author": "Ed Sheeran",
+      "type": "Pop",
+      "NumberOfPlayed": 123456789,
+      "artist": {
+        "idArtist": "001",
+        "nameArtist": "John Doe"
+      }
+    },
+    {
+      "idMusic": 2,
+      "nameMusic": "Blinding Lights",
+      "author": "The Weeknd",
+      "type": "R&B",
+      "NumberOfPlayed": 987654321,
+      "artist": {
+        "idArtist": "002",
+        "nameArtist": "Jane Smith"
+      }
+    },
+    {
+      "idMusic": 3,
+      "nameMusic": "Levitating",
+      "author": "Dua Lipa",
+      "type": "Pop",
+      "NumberOfPlayed": 456789123,
+      "artist": {
+        "idArtist": "001",
+        "nameArtist": "John Doe"
+      }
+    },
+    {
+      "idMusic": 4,
+      "nameMusic": "Bad Guy",
+      "author": "Billie Eilish",
+      "type": "Alternative",
+      "NumberOfPlayed": 321654987,
+      "artist": {
+        "idArtist": "003",
+        "nameArtist": "Michael Johnson"
+      }
+    },
+      {
+        "idMusic": 5,
+        "nameMusic": "Dance Monkey",
+        "author": "Tones and I",
+        "type": "Indie",
+        "NumberOfPlayed": 654321098,
+        "artist": {
+          "idArtist": "004",
+          "nameArtist": "Emily Davis"
+        }
+      },
+      {
+        "idMusic": 6,
+        "nameMusic": "Senorita",
+        "author": "Shawn Mendes và Camila Cabello",
+        "type": "Pop",
+        "NumberOfPlayed": 876543210,
+        "artist": {
+          "idArtist": "001",
+          "nameArtist": "John Doe"
+        }
+      },
+      {
+        "idMusic": 7,
+        "nameMusic": "Truth Hurts",
+        "author": "Lizzo",
+        "type": "Hip-Hop",
+        "NumberOfPlayed": 543210987,
+        "artist": {
+          "idArtist": "001",
+          "nameArtist": "John Doe"
+        }
+      },
+      {
+        "idMusic": 8,
+        "nameMusic": "Old Town Road",
+        "author": "Lil Nas X feat. Billy Ray Cyrus",
+        "type": "Country",
+        "NumberOfPlayed": 987654321,
+        "artist": {
+          "idArtist": "002",
+          "nameArtist": "Jane Smith"
+        }
+      }
+    ]
