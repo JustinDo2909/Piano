@@ -1,84 +1,113 @@
-// src/components/MyAlbum.js
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Button, Input, Layout, Modal, Select, Table } from 'antd';
-import { setMusicList, addMusic } from '../../Redux/reducers/musicReducer';
-import musicData from '../../Data/Music.json';
-import iconMusic from '../../image/music_icon.jpg';
+import { Button, Layout, Table, Select, Modal, Form, Input } from "antd";
+import { Content } from "antd/es/layout/layout";
+import React, { useEffect, useState } from "react";
+import iconMusic from "../../image/music_icon.jpg";
+import { useDispatch, useSelector } from "react-redux";
+import { setMusicList, addMusic } from "../../Redux/reducers/musicReducer";
+import musicData from "../../Data/Music.json";
+import PianoInput from "../../components/PianoInput";
+import backGround from '../../image/3766921.jpg';
 
-const { Content } = Layout;
+const { Option } = Select;
+const { Header, Footer } = Layout;
 
 const MyAlbum = () => {
   const dispatch = useDispatch();
   const musicList = useSelector((state) => state.music.musicList);
-  const [searchValue, setSearchValue] = useState('');
-  const [openModal, setOpenModal] = useState(false);
-  const [newMusic, setNewMusic] = useState({});
+  const [selectedArtist, setSelectedArtist] = useState("001");
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [pianoChords, setPianoChords] = useState("");
 
   useEffect(() => {
     dispatch(setMusicList(musicData));
   }, [dispatch]);
 
-  const handleSearch = (event) => setSearchValue(event.target.value);
-
-  const handleAddMusicClick = () => {
-    setNewMusic({});
-    setOpenModal(true);
+  const handleArtistChange = (value) => {
+    setSelectedArtist(value);
   };
 
-  const artistId = '001'
-  const handleSaveMusic = () => {
-    if (newMusic.nameMusic && newMusic.author && newMusic.type) {
-      dispatch(addMusic({ 
-        ...newMusic,
-        artist: {
-          idArtist: artistId,
-          nameArtist: 'John Doe' // Replace with actual artist name if available
-        },
-        idMusic: musicList.length + 1 
-      }));
-      setOpenModal(false);
-    } else {
-      alert('Please fill all fields.');
-    }
+  const showAddMusicModal = () => {
+    setIsModalVisible(true);
   };
 
-  // Filter music list by artist ID
-  const filteredMusic = musicList.filter((music) =>
-    music.artist && music.artist.idArtist === artistId
+  const handleAddMusic = (values) => {
+    const newMusic = {
+      idMusic: musicList.length + 1,
+      ...values,
+      pianoChords,
+      artist: {
+        idArtist: selectedArtist,
+        nameArtist: musicList.find(
+          (music) => music.artist.idArtist === selectedArtist
+        ).artist.nameArtist,
+      },
+    };
+    dispatch(addMusic(newMusic));
+    setIsModalVisible(false);
+  };
+
+  const filteredMusic = musicList.filter(
+    (music) => music.artist.idArtist === selectedArtist
   );
 
-  
-
   const columns = [
-    { title: 'Name', dataIndex: 'nameMusic', key: 'nameMusic' },
-    { title: 'Author', dataIndex: 'author', key: 'author' },
-    { title: 'Type', dataIndex: 'type', key: 'type' },
-    { title: 'Number of Plays', dataIndex: 'NumberOfPlayed', key: 'NumberOfPlayed' },
+    {
+      title: "Name",
+      dataIndex: "nameMusic",
+      key: "nameMusic",
+    },
+    {
+      title: "Author",
+      dataIndex: "author",
+      key: "author",
+    },
+    {
+      title: "Type",
+      dataIndex: "type",
+      key: "type",
+    },
+    {
+      title: "Number of Plays",
+      dataIndex: "NumberOfPlayed",
+      key: "NumberOfPlayed",
+    },
+    {
+      title: "Piano Chords",
+      dataIndex: "pianoChords",
+      key: "pianoChords",
+    },
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Content style={{ padding: '0 24px 24px', background: '#fff' }}>
-        <h2 style={{ textAlign: 'center' }}>Welcome to MyAlbum</h2>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Button
-            onClick={handleAddMusicClick}
-            type="default"
-            style={{ background: 'green', borderRadius: '20px', color: 'white', width: '10%', marginTop: 25 }}
-          >
-            Add Music <img width={'20%'} src={iconMusic} alt='Music Icon' />
-          </Button>
-          <div>
-            <h3 style={{ textAlign: 'end' }}>Total: {filteredMusic.length}</h3>
-            <Input
-              placeholder="Search..."
-              value={searchValue}
-              onChange={handleSearch}
-              style={{ width: 300 }}
-            />
-          </div>
-        </div>
+    <Layout style={{ minHeight: "100vh", background: `url(${backGround}) no-repeat center center fixed`, backgroundSize: 'cover' }}>
+      <Header style={{ background: 'rgba(0, 0, 0, 0.5)', padding: '0 24px' }}>
+        <h1 style={{ color: '#fff', textAlign: 'center', lineHeight: '64px' }}>MyAlbum</h1>
+      </Header>
+      <Content style={{ padding: 24, margin: '24px 16px 0', background: 'rgba(255, 255, 255, 0.8)', borderRadius: '8px' }}>
+        <h2 style={{ textAlign: "center" }}>Welcome to MyAlbum</h2>
+        <Select
+          defaultValue="001"
+          style={{ width: 200, marginBottom: 20 }}
+          onChange={handleArtistChange}
+        >
+          <Option value="001">John Doe</Option>
+          <Option value="002">Jane Smith</Option>
+          <Option value="003">Michael Johnson</Option>
+          <Option value="004">Emily Davis</Option>
+        </Select>
+        <Button
+          type="default"
+          style={{
+            background: "green",
+            borderRadius: "20px",
+            color: "white",
+            marginLeft: 20,
+            width: "10%",
+          }}
+          onClick={showAddMusicModal}
+        >
+          Add Music <img width={"20%"} src={iconMusic} alt="Music Icon" />
+        </Button>
         <Table
           dataSource={filteredMusic}
           columns={columns}
@@ -86,42 +115,47 @@ const MyAlbum = () => {
           style={{ marginTop: 20 }}
           pagination={{ pageSize: 5 }}
         />
-      </Content>
-      {openModal && (
         <Modal
-          title="ADD MUSIC TO YOUR ALBUM"
-          visible={openModal}
-          onCancel={() => setOpenModal(false)}
+          title="Add New Music"
+          visible={isModalVisible}
+          onCancel={() => setIsModalVisible(false)}
           footer={null}
         >
-          <h2>ADD MUSIC TO YOUR ALBUM</h2>
-          <Input
-            placeholder="Name"
-            value={newMusic.nameMusic || ''}
-            onChange={(e) => setNewMusic({ ...newMusic, nameMusic: e.target.value })}
-          />
-          <Input
-            placeholder="Author"
-            value={newMusic.author || ''}
-            onChange={(e) => setNewMusic({ ...newMusic, author: e.target.value })}
-          />
-          <Select
-            placeholder="Type"
-            value={newMusic.type || ''}
-            onChange={(value) => setNewMusic({ ...newMusic, type: value })}
-          >
-            <Select.Option value="Pop">Pop</Select.Option>
-            <Select.Option value="Rock">Rock</Select.Option>
-            <Select.Option value="Hip-Hop">Hip-Hop</Select.Option>
-          </Select>
-          <Input
-            type="file"
-            accept=".mp3"
-            onChange={(e) => setNewMusic({ ...newMusic, file: e.target.files[0] })}
-          />
-          <Button type="primary" onClick={handleSaveMusic}>Save Music</Button>
+          <Form onFinish={handleAddMusic}>
+            <Form.Item
+              name="nameMusic"
+              label="Music Name"
+              rules={[{ required: true }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item name="author" label="Author" rules={[{ required: true }]}>
+              <Input />
+            </Form.Item>
+            <Form.Item name="type" label="Type" rules={[{ required: true }]}>
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="NumberOfPlayed"
+              label="Number of Plays"
+              rules={[{ required: true }]}
+            >
+              <Input type="number" />
+            </Form.Item>
+            <Form.Item>
+              <PianoInput onChordsSubmit={setPianoChords} />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Add Music
+              </Button>
+            </Form.Item>
+          </Form>
         </Modal>
-      )}
+      </Content>
+      <Footer style={{ textAlign: 'center', background: 'rgba(0, 0, 0, 0.5)', color: '#fff' }}>
+        ©2024 MyAlbum. All Rights Reserved.
+      </Footer>
     </Layout>
   );
 };

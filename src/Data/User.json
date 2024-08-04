@@ -1,0 +1,11 @@
+[
+    {
+        "id": 1,
+        "name": "Ludwig van Beethoven",
+        "email": "beethoven@example.com",
+        "background": "https://i.pinimg.com/originals/f4/99/80/f49980310ca31c30e325aa3928ca145c.jpg",
+        "avatar": "https://www.pianofacile.net/wp-content/uploads/2014/06/ludwig_van_beethoven.png",
+        "favoriteComposer": "Johann Sebastian Bach"
+    }
+  
+]

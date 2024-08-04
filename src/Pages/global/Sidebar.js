@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Layout, Menu, Button, Typography } from "antd";
+import React from "react";
+import { Layout, Menu, Typography } from "antd";
 import {
   UserOutlined,
   DashboardOutlined,
@@ -11,6 +11,46 @@ import { useNavigate } from "react-router-dom";
 
 const Sidebar = ({ collapsed }) => {
   const navigate = useNavigate();
+
+  const menuItems = [
+    {
+      key: "1",
+      icon: <DashboardOutlined />,
+      label: "Dashboard",
+      onClick: () => navigate("/"),
+    },
+    {
+      key: "3",
+      icon: <UserOutlined />,
+      label: "Customer",
+      onClick: () => navigate("/Customer"),
+    },
+    {
+      key: "4",
+      icon: <UserOutlined />,
+      label: "Artist",
+      onClick: () => navigate("/Artist"),
+    },
+    {
+      key: "5",
+      icon: <FolderOutlined />,
+      label: "My Album",
+      onClick: () => navigate("/MyAlbum"),
+    },
+    {
+      key: "6",
+      icon: <CustomerServiceOutlined />,
+      label: "Type of Music",
+      onClick: () => navigate("/TypeMusic"),
+    },
+    {
+      key: "7",
+      icon: <EditOutlined />,
+      label: "Compose",
+      onClick: () => navigate("/Compose"),
+    },
+  ];
+
   return (
     <Layout.Sider trigger={null} collapsible collapsed={collapsed}>
       {!collapsed && (
@@ -21,51 +61,12 @@ const Sidebar = ({ collapsed }) => {
           Admin
         </Typography.Title>
       )}
-      <Menu theme="dark" mode="inline" defaultSelectedKeys={["1"]}>
-        {/* <Typography.Text icon={<MenuOutlined />}>Manage</Typography.Text> */}
-        <Menu.Item
-          key="1"
-          icon={<DashboardOutlined />}
-          onClick={() => navigate("/")}
-        >
-          Dashboard
-        </Menu.Item>
-        <Menu.Item
-          key="3"
-          icon={<UserOutlined />}
-          onClick={() => navigate("/Customer")}
-        >
-          Customer
-        </Menu.Item>
-        <Menu.Item
-          key="4"
-          icon={<UserOutlined />}
-          onClick={() => navigate("/Artist")}
-        >
-          Artist
-        </Menu.Item>
-        <Menu.Item
-          key="5"
-          icon={<FolderOutlined />}
-          onClick={() => navigate("/MyAlbum")}
-        >
-          My Album
-        </Menu.Item>
-        <Menu.Item
-          key="6"
-          icon={<CustomerServiceOutlined />}
-          onClick={() => navigate("/TypeMusic")}
-        >
-          Type of Music
-        </Menu.Item>
-        <Menu.Item
-          key="7"
-          icon={<EditOutlined />}
-          onClick={() => navigate("/Compose")}
-        >
-          Compose
-        </Menu.Item>
-      </Menu>
+      <Menu
+        theme="dark"
+        mode="inline"
+        items={menuItems}
+        defaultSelectedKeys={["1"]}
+      />
     </Layout.Sider>
   );
 };

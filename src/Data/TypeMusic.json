@@ -28,7 +28,8 @@
         }
       ],
       "NumberOfPlayed": 1000000,
-      "createdate": "2023-01-01"
+      "createdate": "2023-01-01",
+      "backgroundImage": "https://www.musicgrotto.com/wp-content/uploads/2022/12/vecteezy_pop-music-vintage-3d-vector-lettering-retro-bold-font_7379506.jpg"
     },
     {
       "idTypeMusic": 2,
@@ -55,7 +56,8 @@
         }
       ],
       "NumberOfPlayed": 500000,
-      "createdate": "2023-02-01"
+      "createdate": "2023-02-01",
+      "backgroundImage": "https://i5.walmartimages.com/asr/63e593cd-d80b-4b73-beea-848a7b847573_1.ae32d07af6157f00aa0ac6b0dd5333b7.jpeg?odnWidth=1000&odnHeight=1000&odnBg=ffffff"
     },
     {
       "idTypeMusic": 3,
@@ -74,7 +76,8 @@
         }
       ],
       "NumberOfPlayed": 200000,
-      "createdate": "2023-03-01"
+      "createdate": "2023-03-01",
+      "backgroundImage": "https://www.musicgrotto.com/wp-content/uploads/2022/10/indie-music-being-played-by-band-with-music-theme-background-graphic.jpg"
     },
     {
       "idTypeMusic": 4,
@@ -93,6 +96,7 @@
         }
       ],
       "NumberOfPlayed": 150000,
-      "createdate": "2023-04-01"
+      "createdate": "2023-04-01",
+      "backgroundImage": "https://wallpapercave.com/wp/YGcbzXB.jpg"
     }
   ]
