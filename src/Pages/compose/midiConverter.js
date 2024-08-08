@@ -58,6 +58,7 @@ export const parsedMidiToCustomFormat = (parsedMidi) => {
 
   let leftHand = "";
   let rightHand = "";
+  let music = "";
 
   parsedMidi.tracks.forEach((track) => {
     let currentTime = 0;
@@ -86,6 +87,7 @@ export const parsedMidiToCustomFormat = (parsedMidi) => {
         } else {
           rightMeasure += `${noteName}_${duration} `;
         }
+        music += `${noteName}_${duration}`;
       });
       leftHand += leftMeasure.trim() + " / ";
       rightHand += rightMeasure.trim() + " / ";

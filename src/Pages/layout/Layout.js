@@ -1,23 +1,37 @@
 import React, { useState } from "react";
-import { Layout, Menu, Button, Typography } from "antd";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Box, useMediaQuery } from "@mui/material";
+import { Outlet } from "react-router-dom";
+import Navbar from "../global/Navbar";
 import Sidebar from "../global/Sidebar";
-import Header from "../global/Header";
 
-const LayOut = () => {
-  const [collapsed, setCollapsed] = useState(true);
+const Layout = () => {
+  const isNonMobile = useMediaQuery("(min-width: 600px)");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Sidebar collapsed={collapsed} />
-      <Layout>
-        <Header collapsed={collapsed} setCollapsed={setCollapsed} />
-        <Layout.Content>
-          <Outlet />
-        </Layout.Content>
-      </Layout>
-    </Layout>
+    <Box display={isNonMobile ? "flex" : "block"} width="100%" height="100vh">
+      <Sidebar
+        isNonMobile={isNonMobile}
+        drawerWidth="200px"
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+      />
+      <Box
+        flexGrow={1}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100vh",
+        }}
+      >
+        <Navbar
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+        />
+        <Outlet />
+      </Box>
+    </Box>
   );
 };
 
-export default LayOut;
+export default Layout;

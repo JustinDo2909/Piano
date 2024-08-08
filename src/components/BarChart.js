@@ -20,7 +20,7 @@ ChartJS.register(
 );
 
 const BarChart = ({ data, options }) => {
-  return <Bar data={data} options={options} style={{ width: "100%" }} />;
+  return <Bar data={data} options={options} />;
 };
 
 export default BarChart;

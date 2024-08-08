@@ -1,8 +1,20 @@
-// import React, { useRef, useEffect, useState } from 'react';
-// import { Stave, StaveNote, Formatter, Voice, Renderer, StaveConnector } from 'vexflow';
-// import './SheetMusic.css'; 
+// import React, { useRef, useEffect, useState } from "react";
+// import {
+//   Stave,
+//   StaveNote,
+//   Formatter,
+//   Voice,
+//   Renderer,
+//   StaveConnector,
+// } from "vexflow";
+// import "./SheetMusic.css";
 
-// const SheetMusic = ({ sheets, currentSheetId, selectedStaveIndex, onSelectStave }) => {
+// const SheetMusic = ({
+//   sheets,
+//   currentSheetId,
+//   selectedStaveIndex,
+//   onSelectStave,
+// }) => {
 //   const canvasRef = useRef(null);
 //   const [clefs, setClefs] = useState({});
 //   const [selectedStave, setSelectedStave] = useState(null); // Trạng thái để theo dõi stave được chọn
@@ -14,7 +26,7 @@
 //     const context = vf.getContext();
 //     context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
-//     const sheet = sheets.find(sheet => sheet.id === currentSheetId);
+//     const sheet = sheets.find((sheet) => sheet.id === currentSheetId);
 //     if (!sheet) return;
 
 //     const staveWidth = 1500;
@@ -29,12 +41,12 @@
 
 //     sheet.staves.forEach((staveData, index) => {
 //       const stave = new Stave(10, yOffset, staveWidth);
-//       const clef = clefs[index] || (index === 0 ? 'treble' : 'bass');
+//       const clef = clefs[index] || (index === 0 ? "treble" : "bass");
 //       stave.addClef(clef).addTimeSignature("4/4");
 //       stave.setContext(context).draw();
 
 //       if (selectedStaveIndex === index) {
-//         context.strokeStyle = 'red';
+//         context.strokeStyle = "red";
 //         context.lineWidth = 2;
 //         context.beginPath();
 //         context.rect(stave.getX(), stave.getY(), staveWidth, staveHeight);
@@ -58,9 +70,7 @@
 //       voice.addTickables(staveNotes);
 
 //       try {
-//         new Formatter()
-//           .joinVoices([voice])
-//           .format([voice], staveWidth - 20);
+//         new Formatter().joinVoices([voice]).format([voice], staveWidth - 20);
 //         voice.draw(context, stave);
 //       } catch (error) {
 //         console.error("Error rendering music:", error);
@@ -68,8 +78,15 @@
 
 //       // Draw stave connectors if needed
 //       if (index < sheet.staves.length - 1) {
-//         const nextStave = new Stave(10, yOffset + staveHeight + spaceBetweenStaves, staveWidth);
-//         new StaveConnector(stave, nextStave).setType(StaveConnector.type.BRACE).setContext(context).draw();
+//         const nextStave = new Stave(
+//           10,
+//           yOffset + staveHeight + spaceBetweenStaves,
+//           staveWidth
+//         );
+//         new StaveConnector(stave, nextStave)
+//           .setType(StaveConnector.type.BRACE)
+//           .setContext(context)
+//           .draw();
 //       }
 
 //       yOffset += staveHeight + spaceBetweenStaves;
@@ -78,9 +95,9 @@
 
 //   const handleClefChange = (newClef) => {
 //     if (selectedStaveIndex !== null) {
-//       setClefs(prevClefs => ({
+//       setClefs((prevClefs) => ({
 //         ...prevClefs,
-//         [selectedStaveIndex]: newClef
+//         [selectedStaveIndex]: newClef,
 //       }));
 //     }
 //   };
@@ -99,8 +116,14 @@
 //           const staveHeight = 150;
 //           const spaceBetweenStaves = 80;
 
-//           const staveIndex = Math.floor((y - 10) / (staveHeight + spaceBetweenStaves));
-//           if (staveIndex >= 0 && staveIndex < sheets.find(sheet => sheet.id === currentSheetId).staves.length) {
+//           const staveIndex = Math.floor(
+//             (y - 10) / (staveHeight + spaceBetweenStaves)
+//           );
+//           if (
+//             staveIndex >= 0 &&
+//             staveIndex <
+//               sheets.find((sheet) => sheet.id === currentSheetId).staves.length
+//           ) {
 //             onSelectStave(staveIndex);
 //             setSelectedStave(staveIndex); // Cập nhật stave được chọn
 //           }
@@ -111,7 +134,10 @@
 //           <div className="control-item">
 //             <label>Clef:</label>
 //             <select
-//               value={clefs[selectedStaveIndex] || (selectedStaveIndex === 0 ? 'bass' : 'treble')}
+//               value={
+//                 clefs[selectedStaveIndex] ||
+//                 (selectedStaveIndex === 0 ? "bass" : "treble")
+//               }
 //               onChange={(e) => handleClefChange(e.target.value)}
 //             >
 //               <option value="treble">Treble</option>
@@ -125,11 +151,11 @@
 // };
 
 // const noteValueToTicks = {
-//   'q': 1, // Quarter note
-//   'h': 2, // Half note
-//   'w': 4, // Whole note
-//   '8': 0.5, // Eighth note
-//   '16': 0.25 // Sixteenth note
+//   q: 1, // Quarter note
+//   h: 2, // Half note
+//   w: 4, // Whole note
+//   8: 0.5, // Eighth note
+//   16: 0.25, // Sixteenth note
 // };
 
 // export default SheetMusic;

@@ -1,9 +1,27 @@
-import React, { useState } from 'react';
-import { Layout, Button, Upload, InputNumber, Typography, Row, Col, Card, message, Select } from 'antd';
-import { UploadOutlined, PlayCircleOutlined, DeleteOutlined, SaveOutlined } from '@ant-design/icons';
+import React, { useState } from "react";
+import {
+  Layout,
+  Button,
+  Upload,
+  InputNumber,
+  Typography,
+  Row,
+  Col,
+  Card,
+  message,
+  Select,
+} from "antd";
+import {
+  UploadOutlined,
+  PlayCircleOutlined,
+  DeleteOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
 import * as Tone from "tone";
 import { parseMidiFile, parsedMidiToCustomFormat } from "./midiConverter";
-import backGround from '../../image/3766921.jpg';
+import backGround from "../../image/3766921.jpg";
+import { Footerr } from "../album";
+import Footer from "../global/Footer";
 const { Content } = Layout;
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -11,14 +29,14 @@ const { Option } = Select;
 const sampleSongs = [
   { name: "Song A" },
   { name: "Song B" },
-  { name: "Song C" }
+  { name: "Song C" },
 ];
 
 const Compose = () => {
   const [outputLeft, setOutputLeft] = useState("");
   const [outputRight, setOutputRight] = useState("");
   const [parsedMidi, setParsedMidi] = useState(null);
-  const [speed, setSpeed] = useState(1); // Speed factor
+  const [speed, setSpeed] = useState(1);
   const [selectedSong, setSelectedSong] = useState(null);
   const [isFileUploaded, setIsFileUploaded] = useState(false);
 
@@ -64,7 +82,7 @@ const Compose = () => {
     if (outputLeft && outputRight && selectedSong) {
       const songData = {
         leftHand: outputLeft,
-        rightHand: outputRight
+        rightHand: outputRight,
       };
       localStorage.setItem(selectedSong, JSON.stringify(songData));
       message.success(`Notes saved to ${selectedSong}.`);
@@ -79,33 +97,29 @@ const Compose = () => {
   };
 
   const playNotes = (notes, instrument) => {
-    let currentTime = Tone.now(); // Use Tone.now() for the starting time
+    let currentTime = Tone.now();
 
     notes.split(" / ").forEach((measure) => {
-      let measureStartTime = currentTime; // Start each measure at the current time
+      let measureStartTime = currentTime;
 
       measure.split(" ").forEach((noteStr) => {
         if (noteStr.trim() !== "") {
           const { pitch, duration } = parseNote(noteStr);
           if (!isNaN(duration)) {
-            // Ensure that each note starts after the previous note ends
             instrument.triggerAttackRelease(
               pitch,
               duration / speed,
               measureStartTime
             );
-            // Update measureStartTime for the next note
             measureStartTime += duration / speed;
 
-            // Ensure no overlapping notes
             if (measureStartTime <= currentTime) {
-              measureStartTime = currentTime + 0.001; // Small buffer to avoid overlap
+              measureStartTime = currentTime + 0.001;
             }
           }
         }
       });
 
-      // Update currentTime to be the end of the current measure
       currentTime = measureStartTime;
     });
   };
@@ -120,20 +134,44 @@ const Compose = () => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundImage: `url(${backGround})`, backgroundSize: 'cover', margin: 0 , padding: 0}}>
-      <Content style={{ padding: '50px', margin: 0 }}>
-        <Card style={{ maxWidth: '800px', margin: 'auto', borderRadius: '10px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
-          <Title level={2} style={{ textAlign: 'center', color: '#1890ff' }}>MIDI Converter</Title>
+    <Layout
+      style={{
+        minHeight: "92vh",
+        backgroundImage: `url(${backGround})`,
+        backgroundSize: "cover",
+        margin: 0,
+        padding: 0,
+      }}
+    >
+      <Content style={{ padding: "50px", margin: 0 }}>
+        <Card
+          style={{
+            maxWidth: "800px",
+            margin: "auto",
+            borderRadius: "10px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.3)",
+            backgroundColor: "rgba(0, 21, 41, 0.9)",
+          }}
+        >
+          <Title level={2} style={{ textAlign: "center", color: "#fff" }}>
+            MIDI Converter
+          </Title>
           <Row gutter={[16, 16]} justify="center">
             <Col span={12}>
               <Select
                 placeholder="Select a song"
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 onChange={setSelectedSong}
               >
-                {sampleSongs.map(song => (
+                {sampleSongs.map((song) => (
                   <Option key={song.name} value={song.name}>
-                    <div style={{ color: localStorage.getItem(song.name) ? 'green' : 'gray' }}>
+                    <div
+                      style={{
+                        color: localStorage.getItem(song.name)
+                          ? "green"
+                          : "red",
+                      }}
+                    >
                       {song.name}
                     </div>
                   </Option>
@@ -151,14 +189,18 @@ const Compose = () => {
                   icon={<UploadOutlined />}
                   type="primary"
                   block
-                  style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+                  style={{
+                    backgroundColor: "#fff",
+                    borderColor: "#fff",
+                    color: "#001529",
+                  }}
                 >
                   Upload MIDI File
                 </Button>
               </Upload>
             </Col>
           </Row>
-          <Row gutter={[16, 16]} justify="center" style={{ marginTop: '20px' }}>
+          <Row gutter={[16, 16]} justify="center" style={{ marginTop: "20px" }}>
             <Col span={8}>
               <Button
                 icon={<PlayCircleOutlined />}
@@ -166,7 +208,11 @@ const Compose = () => {
                 block
                 onClick={handlePlayMusic}
                 disabled={!isFileUploaded}
-                style={{ backgroundColor: '#1890ff', borderColor: '#1890ff' }}
+                style={{
+                  backgroundColor: "#fff",
+                  borderColor: "#fff",
+                  color: "#001529",
+                }}
               >
                 Play Music
               </Button>
@@ -178,7 +224,11 @@ const Compose = () => {
                 block
                 onClick={handleDeleteFile}
                 disabled={!isFileUploaded}
-                style={{ backgroundColor: '#ff4d4f', borderColor: '#ff4d4f' }}
+                style={{
+                  backgroundColor: "#fff",
+                  borderColor: "#fff",
+                  color: "#001529",
+                }}
               >
                 Delete MIDI File
               </Button>
@@ -190,38 +240,63 @@ const Compose = () => {
                 block
                 onClick={handleSaveFile}
                 disabled={!isFileUploaded || !selectedSong}
-                style={{ backgroundColor: '#faad14', borderColor: '#faad14' }}
+                style={{
+                  backgroundColor: "#fff",
+                  borderColor: "#fff",
+                  color: "#001529",
+                }}
               >
                 Save Notes
               </Button>
             </Col>
           </Row>
-          <Row gutter={[16, 16]} justify="center" style={{ marginTop: '20px' }}>
+          <Row gutter={[16, 16]} justify="center" style={{ marginTop: "20px" }}>
             <Col span={12}>
-              <Text>Speed:</Text>
+              <Text style={{ color: "#fff" }}>Speed:</Text>
               <InputNumber
                 value={speed}
-                onChange={value => setSpeed(value)}
+                onChange={(value) => setSpeed(value)}
                 step={0.1}
                 min={0.1}
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
               />
             </Col>
           </Row>
-          <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
+          <Row gutter={[16, 16]} style={{ marginTop: "20px" }}>
             <Col span={12}>
-              <Card title="Left Hand" bordered={false} headStyle={{ color: '#52c41a' }} bodyStyle={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', backgroundColor: 'rgba(255, 255, 255, 0.7)' }}>
+              <Card
+                title="Left Hand"
+                bordered={false}
+                headStyle={{ color: "black" }}
+                bodyStyle={{
+                  whiteSpace: "pre-wrap",
+                  fontFamily: "monospace",
+                  backgroundColor: "rgba(0, 21, 41, 0.5)",
+                  color: "#fff",
+                }}
+              >
                 {outputLeft}
               </Card>
             </Col>
             <Col span={12}>
-              <Card title="Right Hand" bordered={false} headStyle={{ color: '#f5222d' }} bodyStyle={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', backgroundColor: 'rgba(255, 255, 255, 0.7)' }}>
+              <Card
+                title="Right Hand"
+                bordered={false}
+                headStyle={{ color: "black" }}
+                bodyStyle={{
+                  whiteSpace: "pre-wrap",
+                  fontFamily: "monospace",
+                  backgroundColor: "rgba(0, 21, 41, 0.5)",
+                  color: "#fff",
+                }}
+              >
                 {outputRight}
               </Card>
             </Col>
           </Row>
         </Card>
       </Content>
+      {/* <Footer /> */}
     </Layout>
   );
 };

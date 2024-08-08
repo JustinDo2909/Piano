@@ -1,80 +1,43 @@
-// const StatBox = ({ icon, title, value }) => {
-//   return (
-//     <div
-//       style={{
-//         gridColumn: "span 3",
-//         gridRow: "span 1",
-//         borderRadius: "10px",
-//         backgroundColor: "white",
-//       }}
-//     >
-//       <div
-//         style={{
-//           borderRadius: "0 0 30px 0",
-//           height: "20px",
-//           width: "70%",
-//           backgroundColor: "#A9D372",
-//         }}
-//       />
-//       <div style={{ display: "flex", padding: "1rem" }}>
-//         <img
-//           src={icon}
-//           alt={title}
-//           style={{ backgroundColor: "#A9D372", width: "15%" }}
-//         />
-//         <div style={{ marginLeft: "20px" }}>
-//           <div>{title}</div>
-//           <div>{value}</div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default StatBox;
-
 import React from "react";
 import { Card, Row, Col } from "antd";
+import FlexBetween from "./FlexBetween";
+import { Box, Paper, Typography } from "@mui/material";
 
 const StatBox = ({ icon, title, value }) => {
   return (
-    <Card
-      bordered={false}
-      style={{
-        gridColumn: "span 3",
-        gridRow: "span 1",
-        borderRadius: "10px",
-        backgroundColor: "white",
-      }}
-      bodyStyle={{ padding: "0" }}
+    <Box
+      gridColumn="span 3"
+      gridRow="span 1"
+      borderRadius="0.5rem"
+      display="flex"
+      flex="1 1 100%"
+      backgroundColor="white"
+      flexDirection="column"
+      component={Paper}
     >
-      <div
+      <Box
         style={{
-          borderRadius: "0 0 30px 0",
-          height: "20px",
-          width: "70%",
-          backgroundColor: "#A9D372",
+          borderRadius: "1rem 0 30px 0",
+          height: "1rem",
+          width: "80%",
+          backgroundColor: "#7a7f9d",
         }}
       />
-      <Row style={{ display: "flex", padding: "1rem" }}>
-        <Col>
-          <img
-            src={icon}
-            alt={title}
-            style={{
-              backgroundColor: "#A9D372",
-              width: "60px",
-              height: "60px",
-              borderRadius: "10px",
-            }}
-          />
-        </Col>
-        <Col style={{ marginLeft: "20px" }}>
-          <div style={{ fontSize: "16px", fontWeight: "bold" }}>{title}</div>
-          <div style={{ fontSize: "24px", marginTop: "8px" }}>{value}</div>
-        </Col>
-      </Row>
-    </Card>
+
+      <FlexBetween sx={{ p: "1rem" }}>
+        <Box>
+          <Typography variant="h4" fontWeight="bold" sx={{ color: "#1B1A55" }}>
+            {value}
+          </Typography>
+          <Typography style={{ fontSize: "16px", color: "#333333" }}>
+            {title}
+          </Typography>
+        </Box>
+        <Box
+          style={{ fontSize: "3em", height: "100%", color: "#535C91" }}
+        ></Box>
+      </FlexBetween>
+    </Box>
   );
 };
 

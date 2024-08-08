@@ -1,13 +1,13 @@
-// import React, { useState } from 'react';
+// import React, { useState } from "react";
 
 // const NoteInput = ({ onAddNote }) => {
-//   const [note, setNote] = useState('c/4');
-//   const [duration, setDuration] = useState('q');
+//   const [note, setNote] = useState("c/4");
+//   const [duration, setDuration] = useState("q");
 
 //   const handleAddNote = () => {
 //     onAddNote({ note, duration });
-//     setNote('c/4');
-//     setDuration('q');
+//     setNote("c/4");
+//     setDuration("q");
 //   };
 
 //   return (

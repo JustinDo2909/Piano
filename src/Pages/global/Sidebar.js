@@ -1,73 +1,161 @@
 import React from "react";
-import { Layout, Menu, Typography } from "antd";
 import {
-  UserOutlined,
-  DashboardOutlined,
+  Box,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+} from "@mui/material";
+import {
+  ChevronLeft,
+  ChevronRightOutlined,
+  HomeOutlined,
+  Groups2Outlined,
   FolderOutlined,
-  CustomerServiceOutlined,
-  EditOutlined,
-} from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+  Headphones,
+  DriveFileRenameOutline,
+} from "@mui/icons-material";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import FlexBetween from "../../components/FlexBetween";
 
-const Sidebar = ({ collapsed }) => {
+const navItems = [
+  {
+    text: "Home",
+    icon: <HomeOutlined />,
+  },
+  {
+    text: "Customers",
+    icon: <Groups2Outlined />,
+  },
+  {
+    text: "Artist",
+    icon: <Groups2Outlined />,
+  },
+  {
+    text: "MyAlbum",
+    icon: <FolderOutlined />,
+  },
+  {
+    text: "TypeOfMusic",
+    icon: <Headphones />,
+  },
+  {
+    text: "Compose",
+    icon: <DriveFileRenameOutline />,
+  },
+];
+
+const Sidebar = ({
+  drawerWidth,
+  isSidebarOpen,
+  setIsSidebarOpen,
+  isNonMobile,
+}) => {
+  const { pathname } = useLocation();
+  const [active, setActive] = useState("");
   const navigate = useNavigate();
 
-  const menuItems = [
-    {
-      key: "1",
-      icon: <DashboardOutlined />,
-      label: "Dashboard",
-      onClick: () => navigate("/"),
-    },
-    {
-      key: "3",
-      icon: <UserOutlined />,
-      label: "Customer",
-      onClick: () => navigate("/Customer"),
-    },
-    {
-      key: "4",
-      icon: <UserOutlined />,
-      label: "Artist",
-      onClick: () => navigate("/Artist"),
-    },
-    {
-      key: "5",
-      icon: <FolderOutlined />,
-      label: "My Album",
-      onClick: () => navigate("/MyAlbum"),
-    },
-    {
-      key: "6",
-      icon: <CustomerServiceOutlined />,
-      label: "Type of Music",
-      onClick: () => navigate("/TypeMusic"),
-    },
-    {
-      key: "7",
-      icon: <EditOutlined />,
-      label: "Compose",
-      onClick: () => navigate("/Compose"),
-    },
-  ];
+  useEffect(() => {
+    setActive(pathname.substring(1));
+  }, [pathname]);
 
   return (
-    <Layout.Sider trigger={null} collapsible collapsed={collapsed}>
-      {!collapsed && (
-        <Typography.Title
-          level={2}
-          style={{ color: "white", textAlign: "center" }}
+    <Box component="nav">
+      {isSidebarOpen && (
+        <Drawer
+          open={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          variant="persistent"
+          anchor="left"
+          sx={{
+            width: drawerWidth,
+            "& .MuiDrawer-paper": {
+              color: "gray",
+              backgroundColor: "#001529",
+              boxSixing: "border-box",
+              borderWidth: isNonMobile ? 0 : "2px",
+              width: drawerWidth,
+            },
+          }}
         >
-          Admin
-        </Typography.Title>
+          <Box width="100%">
+            <Box m="1.5rem 2rem 2rem 3rem">
+              <FlexBetween>
+                <Box display="flex" alignItems="center" gap="0.5rem">
+                  <Typography
+                    variant="h4"
+                    fontWeight="bold"
+                    color="#fff"
+                    textAlign="center"
+                  >
+                    Admin
+                  </Typography>
+                </Box>
+                {!isNonMobile && (
+                  <IconButton onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                    <ChevronLeft sx={{ color: "#fff" }} />
+                  </IconButton>
+                )}
+              </FlexBetween>
+            </Box>
+            <List>
+              {navItems.map(({ text, icon }) => {
+                if (!icon) {
+                  return (
+                    <Typography key={text} sx={{ m: "2.25rem 0 1rem 3rem" }}>
+                      {text}
+                    </Typography>
+                  );
+                }
+                const lcText = text.toLowerCase();
+
+                return (
+                  <ListItem key={text} disablePadding>
+                    <ListItemButton
+                      onClick={() => {
+                        navigate(`/${lcText}`);
+                        setActive(lcText);
+                      }}
+                      sx={{
+                        backgroundColor:
+                          active === lcText ? "#1677ff" : "transparent",
+                        color:
+                          active === lcText
+                            ? "#fff"
+                            : "rgba(255, 255, 255, 0.65)",
+                        borderRadius: "10px",
+                      }}
+                    >
+                      <ListItemIcon
+                        sx={{
+                          ml: "1rem",
+                          color:
+                            active === lcText
+                              ? "#fff"
+                              : "rgba(255, 255, 255, 0.65)",
+                        }}
+                      >
+                        {icon}
+                      </ListItemIcon>
+                      <ListItemText primary={text} />
+                      {active === lcText && (
+                        <ChevronRightOutlined sx={{ ml: "auto" }} />
+                      )}
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </List>
+          </Box>
+        </Drawer>
       )}
-      <Menu
-        theme="dark"
-        mode="inline"
-        items={menuItems}
-        defaultSelectedKeys={["1"]}
-      />
-    </Layout.Sider>
+    </Box>
   );
 };
 
