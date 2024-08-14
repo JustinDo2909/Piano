@@ -1,14 +1,12 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
-const PrivateRoute = ({ children }) => {
-  const auth = localStorage.getItem("token");
+const ProtectedRoute = ({ element: Component, ...rest }) => {
+  const user = useSelector((state) => state.authUser.authUser);
+  const { token } = user;
 
-  if (auth === null) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
+  return token ? <Component {...rest} /> : <Navigate to="/404" replace />;
 };
 
-export default PrivateRoute;
+export default ProtectedRoute;

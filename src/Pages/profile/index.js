@@ -13,6 +13,10 @@ import {
 import { styled } from "@mui/system";
 import users from "../../Data/User.json";
 import backGround from "../../image/3766921.jpg";
+import { GetMyInfo } from "../../util/ApiFunction";
+import { useDispatch, useSelector } from "react-redux";
+import { info } from "../../Redux/reducers/authSlice";
+
 
 const BackgroundContainer = styled(Box)(({ theme }) => ({
   backgroundImage: `url(${backGround})`,
@@ -68,13 +72,14 @@ const ProfileStat = styled(Box)(({ theme }) => ({
 }));
 
 const Profile = () => {
+const dispatch = useDispatch();
   const [user, setUser] = useState({});
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const userData = useSelector((state) => state.authUser.authUser);
   const [editForm, setEditForm] = useState({
     name: "",
     email: "",
-    favoriteComposer: "",
   });
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -82,13 +87,25 @@ const Profile = () => {
   });
 
   useEffect(() => {
-    setUser(users[0]);
     setEditForm({
-      name: users[0].name,
-      email: users[0].email,
-      favoriteComposer: users[0].favoriteComposer || "",
+      name: userData.name,
+      email: userData.email,
     });
   }, []);
+  const getMyInfo = GetMyInfo();
+  useEffect(() => {
+    const getCustomer = async () => {
+      const data = await getMyInfo();
+      if (data !== null) {
+       dispatch(info(data))
+       console.log(userData.role)
+       console.log(data.data)
+      }
+      console.log('cut')
+    };
+    getCustomer();
+  },[])
+  
 
   const handleEditClick = () => {
     setIsEditModalOpen(true);
@@ -119,7 +136,6 @@ const Profile = () => {
       ...user,
       name: editForm.name,
       email: editForm.email,
-      favoriteComposer: editForm.favoriteComposer,
     });
     setIsEditModalOpen(false);
   };
@@ -140,32 +156,13 @@ const Profile = () => {
         />
         <ProfileInfo>
           <Avatar
-            alt={user.name}
+            alt={userData.name}
             src={user.background}
             sx={{ width: 100, height: 100, mb: 2, mx: "auto" }}
           />
-          <ProfileTitle variant="h3">{user.name}</ProfileTitle>
-          <ProfileDescription>{user.email}</ProfileDescription>
-          <ProfileStats>
-            <ProfileStat>
-              <Typography variant="body2" fontWeight="bold">
-                Favorite Composer
-              </Typography>
-              <Typography>{user.favoriteComposer || "Unknown"}</Typography>
-            </ProfileStat>
-            <ProfileStat>
-              <Typography variant="body2" fontWeight="bold">
-                Followers
-              </Typography>
-              <Typography>{user.followers || 0}</Typography>
-            </ProfileStat>
-            <ProfileStat>
-              <Typography variant="body2" fontWeight="bold">
-                Following
-              </Typography>
-              <Typography>{user.following || 0}</Typography>
-            </ProfileStat>
-          </ProfileStats>
+          <ProfileTitle variant="h3">{userData.name}</ProfileTitle>
+          <ProfileDescription>{userData.email}</ProfileDescription>
+         
           <Button
             variant="contained"
             color="primary"
@@ -198,7 +195,7 @@ const Profile = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: "80%",
+            width: "20%",
             maxWidth: 600,
             bgcolor: "background.paper",
             borderRadius: 2,
@@ -221,14 +218,6 @@ const Profile = () => {
             label="Email"
             name="email"
             value={editForm.email}
-            onChange={handleEditChange}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="Favorite Composer"
-            name="favoriteComposer"
-            value={editForm.favoriteComposer}
             onChange={handleEditChange}
             fullWidth
             sx={{ mb: 2 }}

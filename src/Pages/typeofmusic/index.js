@@ -1,17 +1,4 @@
 import React, { useEffect, useState } from "react";
-import {
-  Layout,
-  Button,
-  Input,
-  Card,
-  Modal,
-  Form,
-  Typography,
-  Space,
-  Upload,
-  message,
-  Select,
-} from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addGenre,
@@ -21,16 +8,25 @@ import {
 } from "../../Redux/reducers/musicReducer";
 import TypeData from "../../Data/TypeMusic.json";
 import {
-  EditOutlined,
-  DeleteOutlined,
-  UploadOutlined,
-} from "@ant-design/icons";
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Upload as UploadIcon,
+} from "@mui/icons-material";
 import backGround from "../../image/3766921.jpg";
+import {
+  Box,
+  Button,
+  TextField,
+  Card,
+  CardContent,
+  CardActions,
+  Typography,
+  Modal,
+  Grid,
+  Paper,
+  useMediaQuery,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
-
-const { Content } = Layout;
-const { Title, Paragraph, Text } = Typography;
-const { Option } = Select;
 
 const TypeMusic = () => {
   const dispatch = useDispatch();
@@ -38,7 +34,11 @@ const TypeMusic = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingGenre, setEditingGenre] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
-  const [form] = Form.useForm();
+  const [form, setForm] = useState({
+    nameTypeMusic: "",
+    description: "",
+  });
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,7 +48,7 @@ const TypeMusic = () => {
   const showModal = (genre) => {
     setEditingGenre(genre);
     setImageUrl(genre ? genre.backgroundImage : "");
-    form.setFieldsValue({
+    setForm({
       nameTypeMusic: genre ? genre.nameTypeMusic : "",
       description: genre ? genre.description : "",
     });
@@ -56,24 +56,22 @@ const TypeMusic = () => {
   };
 
   const handleOk = () => {
-    form.validateFields().then((values) => {
-      const genreData = {
-        ...values,
-        createdate: new Date().toISOString().split("T")[0],
-        NumberOfPlayed: "0",
-        backgroundImage: imageUrl,
-      };
-      if (editingGenre) {
-        dispatch(
-          updateGenre({ idTypeMusic: editingGenre.idTypeMusic, ...genreData })
-        );
-      } else {
-        dispatch(addGenre({ idTypeMusic: Date.now(), ...genreData }));
-      }
-      setIsModalVisible(false);
-      setEditingGenre(null);
-      setImageUrl("");
-    });
+    const genreData = {
+      ...form,
+      createdate: new Date().toISOString().split("T")[0],
+      NumberOfPlayed: "0",
+      backgroundImage: imageUrl,
+    };
+    if (editingGenre) {
+      dispatch(
+        updateGenre({ idTypeMusic: editingGenre.idTypeMusic, ...genreData })
+      );
+    } else {
+      dispatch(addGenre({ idTypeMusic: Date.now(), ...genreData }));
+    }
+    setIsModalVisible(false);
+    setEditingGenre(null);
+    setImageUrl("");
   };
 
   const handleCancel = () => {
@@ -86,35 +84,32 @@ const TypeMusic = () => {
     dispatch(deleteGenre(idTypeMusic));
   };
 
-  const handleImageChange = (info) => {
-    if (info.file.status === "done") {
-      const reader = new FileReader();
-      reader.readAsDataURL(info.file.originFileObj);
-      reader.onload = () => {
-        setImageUrl(reader.result);
-      };
-    } else if (info.file.status === "error") {
-      setImageUrl("");
-    }
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      setImageUrl(reader.result);
+    };
   };
 
-  const uploadProps = {
-    beforeUpload: (file) => {
-      const isJpg = file.type === "image/jpeg";
-      if (!isJpg) {
-        message.error("You can only upload JPG files!");
-      }
-      return isJpg;
-    },
-    onChange: handleImageChange,
-    showUploadList: false,
-  };
+  // const uploadProps = {
+  //   beforeUpload: (file) => {
+  //     const isJpg = file.type === "image/jpeg";
+  //     if (!isJpg) {
+  //       message.error("You can only upload JPG files!");
+  //     }
+  //     return isJpg;
+  //   },
+  //   onChange: handleImageChange,
+  //   showUploadList: false,
+  // };
 
   const handleDetail = (item) => {
     navigate(`${item.idTypeMusic}`, {
       state: {
-        name: item.nameTypeMusic
-      }
+        name: item.nameTypeMusic,
+      },
     });
   };
 
@@ -128,57 +123,48 @@ const TypeMusic = () => {
   ];
 
   return (
-    <Layout
-      style={{
-        minHeight: "92vh",
+    <Box
+      p="1rem 1.5rem"
+      height="92vh"
+      sx={{
         background: `url(${backGround}) no-repeat center center fixed`,
         backgroundSize: "cover",
       }}
     >
-      <Layout
-        style={{
+      <Box
+        sx={{
           background: "rgba(255, 255, 255, 0.5)",
           borderRadius: 8,
-          padding: 24,
-          margin: 24,
-          overflowY: "auto", // Allows the container to scroll if necessary
+          padding: "1rem",
         }}
       >
-        <Content
-          style={{
-            margin: 0,
-            borderRadius: 8,
-            padding: 16,
-          }}
+        <Typography variant="h4" gutterBottom>
+          Manage Music Genres
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => showModal(null)}
+          sx={{ marginBottom: 2, borderRadius: 4 }}
         >
-          <Title level={2} style={{ marginBottom: 16, color: "white" }}>
-            Manage Music Genres
-          </Title>
-          <Button
-            type="primary"
-            onClick={() => showModal(null)}
-            style={{ marginBottom: 16, borderRadius: 4 }}
-          >
-            Add Genre
-          </Button>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-            {genres.map((item) => (
+          Add Genre
+        </Button>
+        <Grid container spacing={2}>
+          {genres.map((item) => (
+            <Grid item key={item.idTypeMusic} xs={12} sm={6} md={4}>
               <Card
-                key={item.idTypeMusic}
-                onClick={() => handleDetail(item)}
-                style={{
-                  flex: "1 0 calc(50% - 16px)", // Two items per row
+                sx={{
+                  position: "relative",
                   background: `url(${item.backgroundImage}) no-repeat center center`,
                   backgroundSize: "cover",
-                  height: "300px", // Larger card height
-                  position: "relative",
                   color: "#fff",
+                  height: "100%",
                   overflow: "hidden",
                   cursor: "pointer",
                 }}
               >
-                <div
-                  style={{
+                <Box
+                  sx={{
                     position: "absolute",
                     top: 0,
                     left: 0,
@@ -189,99 +175,120 @@ const TypeMusic = () => {
                     pointerEvents: "none",
                   }}
                 />
-
-                <div
-                  style={{
+                <CardContent sx={{ position: "relative", zIndex: 2 }}>
+                  <Typography variant="h5" gutterBottom>
+                    {item.nameTypeMusic}
+                  </Typography>
+                  <Typography variant="body2" gutterBottom>
+                    {item.description}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Number of Plays:</strong> {item.NumberOfPlayed}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Created Date:</strong>{" "}
+                    {new Date(item.createdate).toLocaleDateString()}
+                  </Typography>
+                </CardContent>
+                <CardActions
+                  sx={{
                     position: "relative",
                     zIndex: 2,
-                    padding: "16px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    height: "100%",
+                    justifyContent: "flex-end",
                   }}
                 >
-                  <div>
-                    <Text style={{ color: "white", fontSize: "24px" }}>
-                      {item.nameTypeMusic}
-                    </Text>
-                    <Paragraph style={{ color: "#fff" }}>
-                      {item.description}
-                    </Paragraph>
-                  </div>
-                  <div>
-                    <Space style={{ zIndex: 2 }}>
-                      <Button
-                        type="link"
-                        icon={<EditOutlined />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          showModal(item);
-                        }}
-                        style={{ color: "#fff" }}
-                      />
-                      <Button
-                        type="link"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(item.idTypeMusic);
-                        }}
-                        style={{ color: "white" }}
-                      />
-                    </Space>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-          <Modal
-            title={editingGenre ? "Edit Genre" : "Add Genre"}
-            visible={isModalVisible}
-            onOk={handleOk}
-            onCancel={handleCancel}
-            okText={editingGenre ? "Update" : "Add"}
-            cancelText="Cancel"
-            style={{ borderRadius: 8 }}
-          >
-            <Form form={form} layout="vertical">
-              <Form.Item
-                name="nameTypeMusic"
-                label="Genre Name"
-                rules={[{ required: true, message: "Please select a genre!" }]}
-              >
-                <Select placeholder="Select a genre">
-                  {genresList.map((type) => (
-                    <Option key={type.id} value={type.name}>
-                      {type.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-              <Form.Item name="description" label="Description">
-                <Input.TextArea
-                  placeholder="Enter genre description"
-                  rows={4}
-                />
-              </Form.Item>
-              <Form.Item label="Background Image">
-                <Upload {...uploadProps}>
-                  <Button icon={<UploadOutlined />}>Upload Image</Button>
-                </Upload>
-                {imageUrl && (
-                  <img
-                    src={imageUrl}
-                    alt="Uploaded"
-                    style={{ marginTop: 16, maxHeight: 200 }}
+                  <Button
+                    startIcon={<EditIcon />}
+                    onClick={() => showModal(item)}
+                    sx={{ color: "#fff" }}
                   />
-                )}
-              </Form.Item>
-            </Form>
-          </Modal>
-        </Content>
-      </Layout>
-    </Layout>
+                  <Button
+                    startIcon={<DeleteIcon />}
+                    onClick={() => handleDelete(item.idTypeMusic)}
+                    sx={{ color: "#fff" }}
+                  />
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+        <Modal
+          open={isModalVisible}
+          onClose={handleCancel}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Paper
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 400,
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: 4,
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="h6" component="h2">
+              {editingGenre ? "Edit Genre" : "Add Genre"}
+            </Typography>
+            <Box
+              component="form"
+              sx={{
+                "& .MuiTextField-root": { m: 1, width: "25ch" },
+              }}
+              noValidate
+              autoComplete="off"
+            >
+              <TextField
+                required
+                label="Genre Name"
+                value={form.nameTypeMusic}
+                onChange={(e) =>
+                  setForm({ ...form, nameTypeMusic: e.target.value })
+                }
+                fullWidth
+              />
+              <TextField
+                label="Description"
+                multiline
+                fullWidth
+                value={form.description}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
+              />
+              <Button variant="contained" component="label" sx={{ m: 1 }}>
+                Upload Image
+                <input
+                  type="file"
+                  hidden
+                  accept="image/jpeg"
+                  onChange={handleImageChange}
+                />
+              </Button>
+              {imageUrl && (
+                <img
+                  src={imageUrl}
+                  alt="Uploaded"
+                  style={{ marginTop: 16, maxHeight: 200 }}
+                />
+              )}
+            </Box>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+              <Button onClick={handleCancel} sx={{ mr: 1 }}>
+                Cancel
+              </Button>
+              <Button onClick={handleOk} variant="contained">
+                {editingGenre ? "Update" : "Add"}
+              </Button>
+            </Box>
+          </Paper>
+        </Modal>
+      </Box>
+    </Box>
   );
 };
 

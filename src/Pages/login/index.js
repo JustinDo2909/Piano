@@ -1,118 +1,296 @@
 import React, { useState } from "react";
-import sliderImg from "../../image/pianoSlider.jpg";
 import "./login.css";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../../Api/ApiFunctions";
+// import { loginUser } from "../../Api/ApiFunctions";
+import { TiSocialFacebook } from "react-icons/ti";
+import { MdEast, MdWest } from "react-icons/md";
+import { Box, CircularProgress } from "@mui/material";
+import { createNewAccount, LoginUser } from "../../util/ApiFunction";
+import { useDispatch } from "react-redux";
+import { login } from "../../Redux/reducers/authSlice";
 
 const Login = () => {
-  const [isRight, setIsRight] = useState(false);
+  const dispatch = useDispatch();
+  const [isActive, setIsActive] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [name, setName] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [userRegister, setUserRegister] = useState({
+    username: '',
+    password: '',
+    email: '',
+    phoneNumber: '',
+    name: '',
+    dateOfBirth: '',
+    image: ''
+  });
+  const [userLogin , setUserLogin] = useState({
+    username: '',
+    password : ''
+  })
 
-  const handleSliderClick = () => {
-    setIsRight(!isRight);
+  const handleActiveRightPanel = () => {
+    setIsActive(!isActive);
   };
 
-  const handleloginAdmin = async (e) => {
+  ///////////////////////////handle logic///////////////////////
+  const handleRegister = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    try {
+      if (userRegister.password === passwordConfirm) {
+        const result = await createNewAccount(userRegister);
+        if (result.status < 200 || result.status >= 300) {
+          setError("Email already exists!");
+        } else {
+          setTimeout(() => {
+            navigate("/login");
+          }, 10000);
+        }
+      } else {
+        setError("Your password confirmation does not match your password!");
+      }
+    } catch (error) {
+      console.log(error);
+      setError("Email already exists!");
+    } finally {
+      setLoading(false);
+    }
+    setTimeout(() => {
+      setError("");
+    }, 3000);
+  };
 
-    const result = await loginUser(username, password);
-
-    if (result.success) {
-      navigate("/");
-    } else {
-      alert(result.message);
+  const handleAdminLogin = async(e) => {
+    e.preventDefault();
+    setLoading(true)
+    try {
+      const result = await LoginUser(userLogin)
+      if(result.status === 200) {
+        dispatch(login(userLogin))
+        console.log(result.data)
+        // navigate("/Home");
+      }
+      return;
+    } catch (error) {
+      console.log(error)
+    }finally{
+      setLoading(false)
     }
   };
 
   const handleloginArtist = async (e) => {
     e.preventDefault();
-    const result = await loginUser(username, password);
-    if (result.success) {
-      navigate("/");
-    } else {
-      alert(result.message);
+    setLoading(true)
+    try {
+      const result = await LoginUser(userLogin)
+      if(result.status === 200) {
+        const userData = await result.data;
+        dispatch(login(userData))
+        navigate("/Home");
+      }
+    } catch (error) {
+      console.log(error)
+    }finally{
+      setLoading(false)
     }
   };
 
+  ////////////////////////
+  const handleInputRegisterChange = (e) => {
+    const { name, value } = e.target;
+    setUserRegister({ ...userRegister, [name]: value });
+  };
+  const handleInputLoginChange = (e) => {
+    const { name, value } = e.target;
+    setUserLogin({ ...userLogin, [name]: value });
+  };
+
+  const validate = () => {
+    // Validate email format
+    if (!userRegister.email.endsWith('@gmail.com') && !userRegister.email.endsWith('@fpt.edu.vn')) {
+      setError("Please enter a valid email address ending with @gmail.com or @fpt.edu.vn.");
+      return false;
+    }
+
+    // Validate phone number format
+    if (!/^(0\d{9})$/.test(userRegister.phoneNumber)) {
+      setError("Please enter a valid phone number starting with '0' and containing 10 digits.");
+      return false;
+    }
+    if (userRegister.password.length < 5) {
+      setError("Please enter a password with at least 5 characters.");
+      return false;
+    }
+
+    return true;
+  };
+
+  if (loading) {
+    return (
+      <Box mt={20} mb={38} textAlign={'center'}>
+        <CircularProgress size={50} color="primary" />
+        <Box mt={2}>
+          <h3>LOADING. . .</h3>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
-    <div className="container">
-      <div className="login">
-        <div
-          className={`slider ${isRight ? "right" : ""}`}
-          onClick={handleSliderClick}
-        >
-          <img src={sliderImg} />
-        </div>
-        <div className="admin-login">
-          <div className="title-login">Admin</div>
-          <form className="form-login" onSubmit={handleloginAdmin}>
+    <div className="body">
+      <div className={`container ${isActive ? "right-panel-active" : ""}`}>
+        <div className="form form-register">
+          <form action="#">
+            <h1>Register</h1>
             <input
               type="text"
-              placeholder="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              name="username"
+              placeholder="Username"
+              value={userRegister.username}
+              onChange={handleInputRegisterChange}
+              required
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={userRegister.email}
+              onChange={handleInputRegisterChange}
               required
             />
             <input
               type="password"
-              placeholder="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <button type="submit" className="login-button">
-              SIGN IN
-            </button>
-          </form>
-        </div>
-        <div className="artist-login">
-          <div className="title-login">Artist</div>
-          <form className="form-login" onSubmit={handleloginArtist}>
-            <input
-              type="text"
-              placeholder="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              name="password"
+              placeholder="Password"
+              value={userRegister.password}
+              onChange={handleInputRegisterChange}
               required
             />
             <input
               type="password"
-              placeholder="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Confirm Password"
+              value={passwordConfirm}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
               required
             />
-            <button className="login-button">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                preserveAspectRatio="xMidYMid"
-                viewBox="0 0 256 262"
-              >
-                <path
-                  fill="#4285F4"
-                  d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027"
-                ></path>
-                <path
-                  fill="#34A853"
-                  d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1"
-                ></path>
-                <path
-                  fill="#FBBC05"
-                  d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82 0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602l42.356-32.782"
-                ></path>
-                <path
-                  fill="#EB4335"
-                  d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251"
-                ></path>
-              </svg>
-              Continue with Google
-            </button>
-            <button type="submit" className="login-button">
-              SIGN IN
-            </button>
+            <input
+              type="text"
+              name="phoneNumber"
+              placeholder="Phone Number"
+              value={userRegister.phoneNumber}
+              onChange={handleInputRegisterChange}
+              required
+            />
+            <input
+              type="text"
+              name="name"
+              placeholder="Name"
+              value={userRegister.name}
+              onChange={handleInputRegisterChange}
+              required
+            />
+            <input
+              type="date"
+              name="dateOfBirth"
+              placeholder="Date Of Birth"
+              value={userRegister.dateOfBirth}
+              onChange={handleInputRegisterChange}
+              required
+            />
+            <input
+              type="text"
+              name="image"
+              placeholder="Image"
+              value={userRegister.image}
+              onChange={handleInputRegisterChange}
+              required
+            />
+            <button onClick={handleRegister}>Register</button>
+            <span>or use your account</span>
+            <div className="social-container">
+              <a href="#" className="social">
+                <TiSocialFacebook />
+              </a>
+            </div>
           </form>
+        </div>
+
+        <div className="form form-login">
+          <form onSubmit={handleloginArtist}>
+            <h1>Login here</h1>
+            <input
+              type="text"
+              name= 'username'
+              placeholder="Username"
+              value={userLogin.username}
+              onChange={handleInputLoginChange}
+              required
+            />
+            <input
+              type="password"
+              name= 'password'
+              placeholder="Password"
+              value={userLogin.password}
+              onChange={handleInputLoginChange}
+              required
+            />
+            <div className="content">
+              <div className="checkbox">
+                <input type="checkbox" name="checkbox" id="checkbox" />
+                <label>Remember me</label>
+              </div>
+              <div className="pass-link">
+                <a href="#">Forgot password?</a>
+              </div>
+            </div>
+            <button>Login</button>
+            <span>or use your account</span>
+            <div className="social-container">
+              <a href="#" className="social">
+                <TiSocialFacebook />
+              </a>
+            </div>
+            <a href="#" onClick={handleAdminLogin}>
+              Login with Admin role
+            </a>
+          </form>
+        </div>
+
+        <div className="overlay-layout">
+          <div className="overlay">
+            <div className="overlay-panel overlay-left">
+              <h1 className="title">Hello friends</h1>
+              <p>If you have an account, login here and have fun</p>
+              <button className="ghost" id="login" onClick={handleActiveRightPanel}>
+                Login
+                <i className="lni lni-arrow-left login">
+                  <MdWest />
+                </i>
+              </button>
+            </div>
+            <div className="overlay-panel overlay-right">
+              <h1 className="title">
+                Start your <br /> piano now
+              </h1>
+              <p>
+                If you don't have an account yet, join us and start your journey.
+              </p>
+              <button className="ghost" id="register" onClick={handleActiveRightPanel}>
+                Register
+                <i className="lni lni-arrow-right register">
+                  <MdEast />
+                </i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

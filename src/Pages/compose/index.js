@@ -1,30 +1,32 @@
+
+
 import React, { useState } from "react";
 import {
-  Layout,
   Button,
-  Upload,
-  InputNumber,
   Typography,
-  Row,
-  Col,
+  Grid,
   Card,
-  message,
+  CardContent,
+  CardActions,
+  TextField,
+  CardMedia,
   Select,
-} from "antd";
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Box,
+} from "@mui/material";
 import {
-  UploadOutlined,
-  PlayCircleOutlined,
-  DeleteOutlined,
-  SaveOutlined,
-} from "@ant-design/icons";
+  Upload as UploadIcon,
+  PlayCircle as PlayCircleIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon,
+} from "@mui/icons-material";
 import * as Tone from "tone";
 import { parseMidiFile, parsedMidiToCustomFormat } from "./midiConverter";
 import backGround from "../../image/3766921.jpg";
-import { Footerr } from "../album";
-import Footer from "../global/Footer";
-const { Content } = Layout;
+
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 const sampleSongs = [
   { name: "Song A" },
@@ -40,8 +42,8 @@ const Compose = () => {
   const [selectedSong, setSelectedSong] = useState(null);
   const [isFileUploaded, setIsFileUploaded] = useState(false);
 
-  const handleFileUpload = (options) => {
-    const { file, onSuccess, onError } = options;
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
     const reader = new FileReader();
 
     reader.onload = (e) => {
@@ -55,16 +57,13 @@ const Compose = () => {
         setOutputLeft(leftHand);
         setOutputRight(rightHand);
         setIsFileUploaded(true);
-        onSuccess("ok");
       } catch (error) {
-        message.error("Failed to parse MIDI file.");
-        onError(error);
+        alert("Failed to parse MIDI file.");
       }
     };
 
-    reader.onerror = (e) => {
-      message.error("Failed to read file.");
-      onError(e);
+    reader.onerror = () => {
+      alert("Failed to read file.");
     };
 
     reader.readAsArrayBuffer(file);
@@ -75,7 +74,7 @@ const Compose = () => {
     setOutputRight("");
     setParsedMidi(null);
     setIsFileUploaded(false);
-    message.success("MIDI file removed.");
+    alert("MIDI file removed.");
   };
 
   const handleSaveFile = () => {
@@ -85,9 +84,9 @@ const Compose = () => {
         rightHand: outputRight,
       };
       localStorage.setItem(selectedSong, JSON.stringify(songData));
-      message.success(`Notes saved to ${selectedSong}.`);
+      alert(`Notes saved to ${selectedSong}.`);
     } else {
-      message.error("No notes to save or no song selected.");
+      alert("No notes to save or no song selected.");
     }
   };
 
@@ -134,170 +133,164 @@ const Compose = () => {
   };
 
   return (
-    <Layout
-      style={{
-        minHeight: "92vh",
+    <Box
+      sx={{
+        height: "100%",
         backgroundImage: `url(${backGround})`,
         backgroundSize: "cover",
-        margin: 0,
-        padding: 0,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "50px",
+        
       }}
     >
-      <Content style={{ padding: "50px", margin: 0 }}>
-        <Card
-          style={{
-            maxWidth: "800px",
-            margin: "auto",
-            borderRadius: "10px",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.3)",
-            backgroundColor: "rgba(0, 21, 41, 0.9)",
-          }}
-        >
-          <Title level={2} style={{ textAlign: "center", color: "#fff" }}>
+      <Card
+        sx={{
+          maxWidth: "50%",
+          width: '50%',
+          margin: "auto",
+          borderRadius: "10px",
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.3)",
+          backgroundColor: "white",
+        }}
+      >
+        <CardContent>
+          <Typography
+            variant="h4"
+            align="center"
+            gutterBottom
+            sx={{ color: "#001529" }}
+          >
             MIDI Converter
-          </Title>
-          <Row gutter={[16, 16]} justify="center">
-            <Col span={12}>
-              <Select
-                placeholder="Select a song"
-                style={{ width: "100%" }}
-                onChange={setSelectedSong}
-              >
-                {sampleSongs.map((song) => (
-                  <Option key={song.name} value={song.name}>
-                    <div
-                      style={{
-                        color: localStorage.getItem(song.name)
-                          ? "green"
-                          : "red",
-                      }}
-                    >
-                      {song.name}
-                    </div>
-                  </Option>
-                ))}
-              </Select>
-            </Col>
-            <Col span={12}>
-              <Upload
-                accept=".mid"
-                customRequest={handleFileUpload}
-                showUploadList={false}
-                disabled={!selectedSong}
-              >
-                <Button
-                  icon={<UploadOutlined />}
-                  type="primary"
-                  block
-                  style={{
-                    backgroundColor: "#fff",
-                    borderColor: "#fff",
-                    color: "#001529",
-                  }}
+          </Typography>
+          <Grid container spacing={2} justifyContent="center">
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel sx={{ color: "white" }}>Select a song</InputLabel>
+                <Select
+                  value={selectedSong}
+                  onChange={(e) => setSelectedSong(e.target.value)}
+                  label="Select a song"
+                  sx={{ color: "white" }}
                 >
-                  Upload MIDI File
-                </Button>
-              </Upload>
-            </Col>
-          </Row>
-          <Row gutter={[16, 16]} justify="center" style={{ marginTop: "20px" }}>
-            <Col span={8}>
+                  {sampleSongs.map((song) => (
+                    <MenuItem key={song.name} value={song.name}>
+                      <span
+                        style={{
+                          color: localStorage.getItem(song.name)
+                            ? "green"
+                            : "red",
+                        }}
+                      >
+                        {song.name}
+                      </span>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <Button
-                icon={<PlayCircleOutlined />}
-                type="primary"
-                block
+                variant="contained"
+                component="label"
+                startIcon={<UploadIcon />}
+                fullWidth
+                disabled={!selectedSong}
+                sx={{
+                  backgroundColor: "#fff",
+                  color: "#001529",
+                  "&:hover": {
+                    backgroundColor: "#001529",
+                    color: "#fff",
+                  },
+                }}
+              >
+                Upload MIDI File
+                <input
+                  type="file"
+                  accept=".mid"
+                  hidden
+                  onChange={handleFileUpload}
+                />
+              </Button>
+            </Grid>
+          </Grid>
+          <Grid
+            container
+            spacing={2}
+            justifyContent="center"
+            sx={{ marginTop: 2 }}
+          >
+            <Grid item xs={12} sm={4}>
+              <Button
+                variant="contained"
+                startIcon={<PlayCircleIcon />}
+                fullWidth
                 onClick={handlePlayMusic}
                 disabled={!isFileUploaded}
-                style={{
+                sx={{
                   backgroundColor: "#fff",
-                  borderColor: "#fff",
                   color: "#001529",
+                  "&:hover": {
+                    backgroundColor: "#001529",
+                    color: "#fff",
+                  },
                 }}
               >
-                Play Music
+                Play
               </Button>
-            </Col>
-            <Col span={8}>
+            </Grid>
+            <Grid item xs={12} sm={4}>
               <Button
-                icon={<DeleteOutlined />}
-                type="primary"
-                block
+                variant="contained"
+                startIcon={<DeleteIcon />}
+                fullWidth
                 onClick={handleDeleteFile}
                 disabled={!isFileUploaded}
-                style={{
+                sx={{
                   backgroundColor: "#fff",
-                  borderColor: "#fff",
                   color: "#001529",
+                  "&:hover": {
+                    backgroundColor: "#001529",
+                    color: "#fff",
+                  },
                 }}
               >
-                Delete MIDI File
+                Delete
               </Button>
-            </Col>
-            <Col span={8}>
+            </Grid>
+            <Grid item xs={12} sm={4}>
               <Button
-                icon={<SaveOutlined />}
-                type="primary"
-                block
+                variant="contained"
+                startIcon={<SaveIcon />}
+                fullWidth
                 onClick={handleSaveFile}
                 disabled={!isFileUploaded || !selectedSong}
-                style={{
+                sx={{
                   backgroundColor: "#fff",
-                  borderColor: "#fff",
                   color: "#001529",
+                  "&:hover": {
+                    backgroundColor: "#001529",
+                    color: "#fff",
+                  },
                 }}
               >
-                Save Notes
+                Save
               </Button>
-            </Col>
-          </Row>
-          <Row gutter={[16, 16]} justify="center" style={{ marginTop: "20px" }}>
-            <Col span={12}>
-              <Text style={{ color: "#fff" }}>Speed:</Text>
-              <InputNumber
-                value={speed}
-                onChange={(value) => setSpeed(value)}
-                step={0.1}
-                min={0.1}
-                style={{ width: "100%" }}
-              />
-            </Col>
-          </Row>
-          <Row gutter={[16, 16]} style={{ marginTop: "20px" }}>
-            <Col span={12}>
-              <Card
-                title="Left Hand"
-                bordered={false}
-                headStyle={{ color: "black" }}
-                bodyStyle={{
-                  whiteSpace: "pre-wrap",
-                  fontFamily: "monospace",
-                  backgroundColor: "rgba(0, 21, 41, 0.5)",
-                  color: "#fff",
-                }}
-              >
-                {outputLeft}
-              </Card>
-            </Col>
-            <Col span={12}>
-              <Card
-                title="Right Hand"
-                bordered={false}
-                headStyle={{ color: "black" }}
-                bodyStyle={{
-                  whiteSpace: "pre-wrap",
-                  fontFamily: "monospace",
-                  backgroundColor: "rgba(0, 21, 41, 0.5)",
-                  color: "#fff",
-                }}
-              >
-                {outputRight}
-              </Card>
-            </Col>
-          </Row>
-        </Card>
-      </Content>
-      {/* <Footer /> */}
-    </Layout>
+            </Grid>
+          </Grid>
+          <Grid
+            container
+            spacing={2}
+            justifyContent="center"
+            sx={{ marginTop: 2 }}
+          >
+          </Grid>
+         
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
 

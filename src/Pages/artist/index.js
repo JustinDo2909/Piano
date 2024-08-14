@@ -18,7 +18,7 @@ import {
   MenuItem,
   CardMedia,
 } from "@mui/material";
-import { Add, Close } from "@mui/icons-material";
+import { Add, Close, MoreVert } from "@mui/icons-material";
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import data from "../../Data/Artist.json";
 import { useNavigate } from "react-router-dom";
@@ -38,6 +38,22 @@ const Artist = () => {
   color: green;
   font-size: 16px;
 `;
+const CustomTableCell = ({ children, ...props }) => (
+  <TableCell
+    sx={{
+      padding: "10px 4px", // Reduce padding to make cells smaller
+      fontSize: "0.1rem", // Optional: Reduce font size for smaller appearance
+      whiteSpace: "nowrap", // Prevent text from wrapping
+      overflow: "hidden", // Hide overflow text
+      textOverflow: "ellipsis", // Add ellipsis for overflow text
+      rowGap: 0
+    }}
+    {...props}
+  >
+    {children}
+  </TableCell>
+);
+
 
   const handleAddArtist = () => {
     setSelectedArtist(null);
@@ -136,24 +152,24 @@ const Artist = () => {
             <TableBody>
               {artists.map((artist) => (
                 <TableRow key={artist.idArtist}>
-                  <TableCell>
+                  <CustomTableCell>
                     <CardMedia
                       component="img"
                       image={artist.avarta}
                       alt={artist.nameArtist}
                       style={{ width: '80px', height: '80px', objectFit: 'cover' }}
                     />
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', fontSize: '17px' }}>{artist.nameArtist}</TableCell>
-                  <TableCell sx={{ fontSize: '15px' }}>{artist.total_music.length} songs</TableCell>
-                  <TableCell sx={{ fontSize: '20px' }}>
+                  </CustomTableCell>
+                  <CustomTableCell sx={{ fontWeight: 'bold', fontSize: '17px' }}>{artist.nameArtist}</CustomTableCell>
+                  <CustomTableCell sx={{ fontSize: '15px' }}>{artist.total_music.length} songs</CustomTableCell>
+                  <CustomTableCell sx={{ fontSize: '20px' }}>
                     <Typography
                       fontWeight="600"
                       fontSize="20px"
                       onClick={(event) => handleClick(event, artist)}
                       sx={{ cursor: 'pointer' }}
                     >
-                      <MoreHorizIcon />
+                      <MoreVert />
                     </Typography>
                     <Menu
                       anchorEl={anchorEl}
@@ -164,7 +180,7 @@ const Artist = () => {
                       <MenuItem onClick={() => handleEditArtist(artist)}>Edit</MenuItem>
                       <MenuItem onClick={() => handleDeleteArtist(artist.idArtist)}>Delete</MenuItem>
                     </Menu>
-                  </TableCell>
+                  </CustomTableCell>
                 </TableRow>
               ))}
             </TableBody>

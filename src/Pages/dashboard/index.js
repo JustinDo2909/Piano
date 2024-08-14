@@ -40,24 +40,54 @@ const chartData = [
   {
     id: "Vừa Hận Vừa Yêu",
     data: [
-      { x: "19:00", y: 12 },
-      { x: "21:00", y: 18 },
+      { x: "20:00", y: 50 },
+      { x: "22:00", y: 45 },
+      { x: "00:00", y: 48 },
+      { x: "02:00", y: 45 },
+      { x: "04:00", y: 40 },
+      { x: "06:00", y: 38 },
+      { x: "08:00", y: 35 },
+      { x: "10:00", y: 39 },
+      { x: "12:00", y: 42 },
+      { x: "14:00", y: 48 },
+      { x: "16:00", y: 52 },
+      { x: "18:00", y: 54 },
       // more data points...
     ],
   },
   {
     id: "Hứa Đợi Nhưng Chẳng Tới",
     data: [
-      { x: "19:00", y: 15 },
-      { x: "21:00", y: 20 },
+      { x: "20:00", y: 32 },
+      { x: "22:00", y: 18 },
+      { x: "00:00", y: 22 },
+      { x: "02:00", y: 23 },
+      { x: "04:00", y: 26 },
+      { x: "06:00", y: 24 },
+      { x: "08:00", y: 27 },
+      { x: "10:00", y: 30 },
+      { x: "12:00", y: 26 },
+      { x: "14:00", y: 28 },
+      { x: "16:00", y: 30 },
+      { x: "18:00", y: 32 },
       // more data points...
     ],
   },
   {
     id: "Cô Phòng",
     data: [
-      { x: "19:00", y: 10 },
-      { x: "21:00", y: 14 },
+      { x: "20:00", y: 18 },
+      { x: "22:00", y: 19 },
+      { x: "00:00", y: 18 },
+      { x: "02:00", y: 17 },
+      { x: "04:00", y: 18 },
+      { x: "06:00", y: 15 },
+      { x: "08:00", y: 20 },
+      { x: "10:00", y: 26 },
+      { x: "12:00", y: 32 },
+      { x: "14:00", y: 38 },
+      { x: "16:00", y: 35 },
+      { x: "18:00", y: 30 },
       // more data points...
     ],
   },
@@ -160,17 +190,12 @@ const Home = () => {
             </Typography>
             <PieChart isDashboard={true} />
           </Card> */}
-          <Box
-            sx={{
-              gridColumn: "span 12",
-              gridRow: "span 3",
-              borderRadius: "10px",
-              backgroundColor: "white",
-              padding: "10px",
-            }}
-          >
-            <ZingChart data={data} chartData={chartData} />
-          </Box>
+
+          <ZingChart
+            data={data}
+            chartData={chartData}
+            isNonMediumScreens={isNonMediumScreens}
+          />
         </Box>
       </Box>
     </Box>

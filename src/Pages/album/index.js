@@ -23,14 +23,17 @@ import {
   DialogContentText,
   DialogActions,
 } from "@mui/material";
-import { Upload, Close, MusicNote } from "@mui/icons-material";
+import { Upload, Close, MusicNote, MoreVert } from "@mui/icons-material";
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';  
 import { useDispatch, useSelector } from "react-redux";
 import { setMusicList, addMusic } from "../../Redux/reducers/musicReducer";
 import musicData from "../../Data/Music.json";
 import typeData from "../../Data/TypeMusic.json";
 import backGround from "../../image/3766921.jpg";
-import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { getSong } from "../../util/ApiFunction";
+
+const { styled } = require("@mui/system");
 
 const MyAlbum = () => {
   const dispatch = useDispatch();
@@ -43,14 +46,14 @@ const MyAlbum = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [list, setList] = useState([]);
-  const navigate = useNavigate('');
+  const navigate = useNavigate("");
   const [musicName, setMusicName] = useState("");
   const [author, setAuthor] = useState("");
   const [addedMusic, setAddedMusic] = useState([]); // To store added music
   const [anchorEl, setAnchorEl] = useState(null);
-  const [openDetail, setOpenDetail] = useState(false)
-  const [openEdit, setOpenEdit] = useState(false)
-  const [musicSelected, setMusicSelected] = useState('');
+  const [openDetail, setOpenDetail] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [musicSelected, setMusicSelected] = useState("");
   const open = Boolean(anchorEl);
   // Style
   const GreenTableCell = styled(TableCell)`
@@ -60,8 +63,23 @@ const MyAlbum = () => {
   const TextSize = styled(Typography)`
     font-size: 15px;
   `;
+  const CustomTableCell = ({ children, ...props }) => (
+    <TableCell
+      sx={{
+        padding: "4px 8px",
+        fontSize: "0.875rem",
+      }}
+      {...props}
+    >
+      {children}
+    </TableCell>
+  );
 
   useEffect(() => {
+    // const fetchSongs = async () => {
+    //   await getSong();
+    // };
+    // fetchSongs();
     dispatch(setMusicList(musicData));
   }, [dispatch]);
 
@@ -109,7 +127,7 @@ const MyAlbum = () => {
       },
     };
     setAddedMusic([...addedMusic, newMusic]);
-  }
+  };
   const handleAddMusic = (event) => {
     event.preventDefault();
     if (fileList.length === 0 || fileList[0].type !== "audio/mpeg") {
@@ -137,7 +155,7 @@ const MyAlbum = () => {
     setFileList([]);
     setMusicName("");
     setAuthor("");
-    setAddedMusic([])
+    setAddedMusic([]);
   };
 
   const filteredMusic = musicList.filter(
@@ -155,33 +173,32 @@ const MyAlbum = () => {
   };
 
   const handleClick = (event, music) => {
-    setMusicSelected(music)
+    setMusicSelected(music);
     setAnchorEl(event.currentTarget);
   };
 
   const handleClose = () => {
     setAnchorEl(null);
-
   };
 
   const handleCloseDetail = () => {
-    setMusicSelected('');
-    setOpenDetail(false)
-  }
+    setMusicSelected("");
+    setOpenDetail(false);
+  };
   const handleClickDetail = (music) => {
-    setMusicSelected(music)
-    setOpenDetail(true)
-    setAnchorEl(null)
-  }
+    setMusicSelected(music);
+    setOpenDetail(true);
+    setAnchorEl(null);
+  };
   const handleEdit = (music) => {
-    setMusicSelected(music)
-    setOpenEdit(true)
-    setAnchorEl(null)
-  }
+    setMusicSelected(music);
+    setOpenEdit(true);
+    setAnchorEl(null);
+  };
   const handleColseEdit = (music) => {
-    setMusicSelected('')
-    setOpenEdit(false)
-  }
+    setMusicSelected("");
+    setOpenEdit(false);
+  };
   const handleDelete = (music) => {
     const updatedList = musicList.filter((m) => m.idMusic !== music.idMusic);
     dispatch(setMusicList(updatedList));
@@ -193,7 +210,7 @@ const MyAlbum = () => {
     );
     dispatch(setMusicList(updatedMusicList));
     setOpenEdit(false);
-    setMusicSelected('');
+    setMusicSelected("");
   };
   return (
     <Box
@@ -223,7 +240,7 @@ const MyAlbum = () => {
           maxWidth: 1200,
         }}
       >
-        <Typography fontSize={'15px'} fontWeight={'600'} textAlign={'end'}>
+        <Typography fontSize={"15px"} fontWeight={"600"} textAlign={"end"}>
           Total : {list.length}
         </Typography>
 
@@ -269,12 +286,12 @@ const MyAlbum = () => {
             <TableBody>
               {list.map((music) => (
                 <TableRow key={music.idMusic}>
-                  <TableCell>{music.idMusic}</TableCell>
-                  <TableCell>{music.nameMusic}</TableCell>
-                  <TableCell>{music.author}</TableCell>
-                  <TableCell>{music.type}</TableCell>
-                  <TableCell>{music.NumberOfPlayed}</TableCell>
-                  <TableCell>
+                  <CustomTableCell>{music.idMusic}</CustomTableCell>
+                  <CustomTableCell>{music.nameMusic}</CustomTableCell>
+                  <CustomTableCell>{music.author}</CustomTableCell>
+                  <CustomTableCell>{music.type}</CustomTableCell>
+                  <CustomTableCell>{music.NumberOfPlayed}</CustomTableCell>
+                  <CustomTableCell>
                     {music.mp3File ? (
                       <a href={URL.createObjectURL(music.mp3File)} download>
                         Download
@@ -282,26 +299,30 @@ const MyAlbum = () => {
                     ) : (
                       "No file"
                     )}
-                  </TableCell>
-                  <TableCell>
-                    <Typography
-                      fontWeight={"600"}
-                      fontSize={"20px"}
-                      onClick={(event) => handleClick(event, music)}
-                      sx={{ cursor: 'pointer' }}
-                    >
-                      . . .
-                    </Typography>
+                  </CustomTableCell>
+                  <CustomTableCell>
+                  <IconButton onClick={(event) => handleClick(event, music)}>
+                      <MoreVert />
+                    </IconButton>
                     <Menu
                       anchorEl={anchorEl}
-                      open={Boolean(anchorEl) && musicSelected.idMusic === music.idMusic}
+                      open={
+                        Boolean(anchorEl) &&
+                        musicSelected.idMusic === music.idMusic
+                      }
                       onClose={handleClose}
                     >
-                      <MenuItem onClick={() => handleClickDetail(music)}>Detail</MenuItem>
-                      <MenuItem onClick={() => handleEdit(music)}>Edit</MenuItem>
-                      <MenuItem onClick={() => handleDelete(music)}>Delete</MenuItem>
+                      <MenuItem onClick={() => handleClickDetail(music)}>
+                        Detail
+                      </MenuItem>
+                      <MenuItem onClick={() => handleEdit(music)}>
+                        Edit
+                      </MenuItem>
+                      <MenuItem onClick={() => handleDelete(music)}>
+                        Delete
+                      </MenuItem>
                     </Menu>
-                  </TableCell>
+                  </CustomTableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -328,14 +349,14 @@ const MyAlbum = () => {
               p: 4,
             }}
           >
-            <Typography textAlign={'center'} variant="h2" gutterBottom>
+            <Typography textAlign={"center"} variant="h2" gutterBottom>
               ADD MUSIC TO YOUR ALBUM
             </Typography>
             <Box
               sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
                 mb: 2,
                 gap: 2,
               }}
@@ -373,7 +394,7 @@ const MyAlbum = () => {
               </Select>
               <input
                 accept="audio/*"
-                style={{ display: 'none' }}
+                style={{ display: "none" }}
                 id="file-upload"
                 type="file"
                 onChange={handleUploadChange}
@@ -396,7 +417,7 @@ const MyAlbum = () => {
               <Button
                 variant="contained"
                 onClick={handleApply}
-                sx={{ mb: 2, backgroundColor: 'black', color: 'white' }}
+                sx={{ mb: 2, backgroundColor: "black", color: "white" }}
               >
                 Apply
               </Button>
@@ -436,8 +457,8 @@ const MyAlbum = () => {
             </TableContainer>
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'center ',
+                display: "flex",
+                justifyContent: "center ",
                 gap: 2,
                 mt: 2,
               }}
@@ -482,23 +503,21 @@ const MyAlbum = () => {
           onClose={handleCloseDetail}
           aria-labelledby="alert-dialog-title"
           aria-describedby="alert-dialog-description"
-
           fullWidth
         >
-          <DialogContent sx={{ display: 'flex', gap: 1 }}>
-            <img
-              style={{ width: '50%' }}
-              src={backGround}
-              alt="Background"
-            />
-            <DialogContentText sx={{ borderLeft: '2px solid black', pl:5 }} id="alert-dialog-description">
+          <DialogContent sx={{ display: "flex", gap: 1 }}>
+            <img style={{ width: "50%" }} src={backGround} alt="Background" />
+            <DialogContentText
+              sx={{ borderLeft: "2px solid black", pl: 5 }}
+              id="alert-dialog-description"
+            >
               <Typography variant="h4">INFORMATION </Typography>
               <TextSize>Name : {musicSelected.nameMusic}</TextSize>
               <TextSize>Author : {musicSelected.author}</TextSize>
               <TextSize>Type : {musicSelected.type}</TextSize>
               <TextSize>Played : {musicSelected.NumberOfPlayed}</TextSize>
               <TextSize>
-                Mp3 file : 
+                Mp3 file :
                 {musicSelected.mp3File ? (
                   <a href={URL.createObjectURL(musicSelected.mp3File)} download>
                     Download
@@ -517,20 +536,29 @@ const MyAlbum = () => {
         </Dialog>
       )}
 
-{openEdit && (
+      {openEdit && (
         <Dialog
           open={openEdit}
           onClose={() => setOpenEdit(false)}
           PaperProps={{
-            component: 'form',
+            component: "form",
             onSubmit: (event) => {
               event.preventDefault();
               handleSaveEdit();
             },
           }}
         >
-          <DialogTitle fontSize={'25px'} textAlign={'center'}>EDIT</DialogTitle>
-          <DialogContent sx={{ display: 'flex', flexDirection: 'row', gap: 5, alignItems: 'center' }}>
+          <DialogTitle fontSize={"25px"} textAlign={"center"}>
+            EDIT
+          </DialogTitle>
+          <DialogContent
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 5,
+              alignItems: "center",
+            }}
+          >
             <TextField
               autoFocus
               required
@@ -540,7 +568,12 @@ const MyAlbum = () => {
               value={musicSelected.nameMusic}
               label="Name"
               fullWidth
-              onChange={(e) => setMusicSelected({ ...musicSelected, nameMusic: e.target.value })}
+              onChange={(e) =>
+                setMusicSelected({
+                  ...musicSelected,
+                  nameMusic: e.target.value,
+                })
+              }
             />
             <TextField
               autoFocus
@@ -551,14 +584,18 @@ const MyAlbum = () => {
               value={musicSelected.author}
               label="Author"
               fullWidth
-              onChange={(e) => setMusicSelected({ ...musicSelected, author: e.target.value })}
+              onChange={(e) =>
+                setMusicSelected({ ...musicSelected, author: e.target.value })
+              }
             />
             <TextField
               label="Type"
               select
               name="type"
               value={musicSelected.type}
-              onChange={(e) => setMusicSelected({ ...musicSelected, type: e.target.value })}
+              onChange={(e) =>
+                setMusicSelected({ ...musicSelected, type: e.target.value })
+              }
               displayEmpty
               fullWidth
               required
@@ -574,7 +611,7 @@ const MyAlbum = () => {
               type="file"
               accept="audio/*"
               onChange={handleUploadChange}
-              style={{ display: 'block', width: '60%' }}
+              style={{ display: "block", width: "60%" }}
             />
             {musicSelected.mp3File && (
               <Typography color="textSecondary">
@@ -584,9 +621,17 @@ const MyAlbum = () => {
               </Typography>
             )}
           </DialogContent>
-          <DialogActions sx={{ justifyContent: 'center' }}>
-            <Button color="info" variant="outlined" onClick={() => setOpenEdit(false)}>Cancel</Button>
-            <Button variant="contained" type="submit">Confirm</Button>
+          <DialogActions sx={{ justifyContent: "center" }}>
+            <Button
+              color="info"
+              variant="outlined"
+              onClick={() => setOpenEdit(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="contained" type="submit">
+              Confirm
+            </Button>
           </DialogActions>
         </Dialog>
       )}

@@ -36,7 +36,20 @@ const Customer = () => {
   font-size: 16px;
 `;
 
-
+const CustomTableCell = ({ children, ...props }) => (
+  <TableCell
+    sx={{
+      padding: "2px 4px", // Reduce padding to make cells smaller
+      fontSize: "0.75rem", // Optional: Reduce font size for smaller appearance
+      whiteSpace: "nowrap", // Prevent text from wrapping
+      overflow: "hidden", // Hide overflow text
+      textOverflow: "ellipsis", // Add ellipsis for overflow text
+    }}
+    {...props}
+  >
+    {children}
+  </TableCell>
+);
   const handleOpenModal = (customer = null) => {
     setIsEditMode(!!customer);
     setCurrentCustomer(
@@ -137,16 +150,16 @@ const Customer = () => {
             <TableBody>
               {customers.map((customer) => (
                 <TableRow key={customer.idCustomer}>
-                  <TableCell sx={{fontWeight: 'bold' , fontSize: '15px'}}>{customer.nameCustomer}</TableCell>
-                  <TableCell sx={{ fontSize: '15px'}}>{customer.NumberOfPlayed}</TableCell>
-                  <TableCell sx={{ fontSize: '15px'}}>{customer.HourPlayed}</TableCell>
-                  <TableCell sx={{ fontSize: '15px'}}>{customer.CreateDate}</TableCell>
-                  <TableCell sx={{fontWeight: 'bold' , fontSize: '15px'}}>
+                  <CustomTableCell sx={{fontWeight: 'bold' , fontSize: '15px'}}>{customer.nameCustomer}</CustomTableCell>
+                  <CustomTableCell sx={{ fontSize: '15px'}}>{customer.NumberOfPlayed}</CustomTableCell>
+                  <CustomTableCell sx={{ fontSize: '15px'}}>{customer.HourPlayed}</CustomTableCell>
+                  <CustomTableCell sx={{ fontSize: '15px'}}>{customer.CreateDate}</CustomTableCell>
+                  <CustomTableCell sx={{fontWeight: 'bold' , fontSize: '15px'}}>
                     {customer.favorite_artists
                       .map((artist) => artist.nameArtist)
                       .join(", ")}
-                  </TableCell>
-                  <TableCell>
+                  </CustomTableCell>
+                  <CustomTableCell>
                     <IconButton onClick={(event) => handleClick(event, customer)}>
                       <MoreVert />
                     </IconButton>
@@ -158,7 +171,7 @@ const Customer = () => {
                       <MenuItem onClick={() => handleOpenModal(customer)}>Edit</MenuItem>
                       <MenuItem onClick={() => handleDeleteCustomer(customer.idCustomer)}>Delete</MenuItem>
                     </Menu>
-                  </TableCell>
+                  </CustomTableCell>
                 </TableRow>
               ))}
             </TableBody>
