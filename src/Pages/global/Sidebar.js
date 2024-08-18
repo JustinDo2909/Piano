@@ -23,14 +23,31 @@ import {
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import FlexBetween from "../../components/FlexBetween";
+import { useSelector } from "react-redux";
 
-const navItems = [
+const navItemsAdmin = [
   {
     text: "Home",
     icon: <HomeOutlined />,
   },
   {
-    text: "Customers",
+    text: "Users",
+    icon: <Groups2Outlined />,
+  },
+  {
+    text: "Artist",
+    icon: <Groups2Outlined />,
+  },
+  
+ 
+];
+const navItemsArtist = [
+  {
+    text: "Home",
+    icon: <HomeOutlined />,
+  },
+  {
+    text: "Users",
     icon: <Groups2Outlined />,
   },
   {
@@ -49,6 +66,12 @@ const navItems = [
     text: "Compose",
     icon: <DriveFileRenameOutline />,
   },
+ 
+  {
+    text: "Sheet",
+    icon: <DriveFileRenameOutline />,
+  },
+ 
 ];
 
 const Sidebar = ({
@@ -60,7 +83,7 @@ const Sidebar = ({
   const { pathname } = useLocation();
   const [active, setActive] = useState("");
   const navigate = useNavigate();
-
+  const user = useSelector((state) => state.authUser.authUser);
   useEffect(() => {
     setActive(pathname.substring(1));
   }, [pathname]);
@@ -94,7 +117,7 @@ const Sidebar = ({
                     color="#fff"
                     textAlign="center"
                   >
-                    Admin
+                   {user.role[0] === 'Artist' ? "Artist" : "Admin"}
                   </Typography>
                 </Box>
                 {!isNonMobile && (
@@ -105,7 +128,7 @@ const Sidebar = ({
               </FlexBetween>
             </Box>
             <List>
-              {navItems.map(({ text, icon }) => {
+              {(user.role[0] === "Artist" ? navItemsArtist : navItemsAdmin).map(({ text, icon }) => {
                 if (!icon) {
                   return (
                     <Typography key={text} sx={{ m: "2.25rem 0 1rem 3rem" }}>

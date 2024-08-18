@@ -1,10 +1,7 @@
 import React from "react";
 import BarChart from "../../components/BarChart";
-import PieChart from "../../components/PieChart";
 import StatBox from "../../components/StatBox";
-import Artist from "../../image/37e3588512a03e0ef7d30450fe386172.png";
-import TotalMusic from "../../image/80f796db14696e02abe0f2cc081fcd27.png";
-import TotalTime from "../../image/efe879c73aa17261d6e2141a92cfa727.png";
+import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import {
   Box,
   Card,
@@ -96,65 +93,19 @@ const chartData = [
 const Home = () => {
   const isNonMediumScreens = useMediaQuery("(min-width: 1200px)");
 
-  const barChartData = {
-    labels: [
-      "Jan",
-      "Fer",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ],
-    datasets: [
-      {
-        label: "Number of Plays",
-        data: [100, 200, 300, 400, 500, 600, 500, 400, 100, 200, 150, 700],
-        backgroundColor: (context) => {
-          const ctx = context.chart.ctx;
-          const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-          gradient.addColorStop(0, "#1B1A55");
-          gradient.addColorStop(1, "#9290C3");
-          return gradient;
-        },
-        borderWidth: 0,
-        borderRadius: 15,
-      },
-    ],
-  };
-
-  const barChartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top",
-      },
-      title: {
-        display: true,
-        text: "Number of Plays per Month",
-      },
-    },
-  };
-
   return (
     <Box sx={{ padding: "1rem" }}>
       <Box
         sx={{
           padding: "1rem",
           boxShadow: "-3px 4px 6.8px 5px #00000040",
-          background: "#D9D9D9",
+          background: "#535C91",
           borderRadius: "8px",
         }}
       >
         <Box
-          mt="20px"
           display="grid"
-          gridTemplateColumns="repeat(12, 1fr)"
+          gridTemplateColumns="repeat(16, 1fr)"
           gridAutoRows="100px"
           gap="20px"
           sx={{
@@ -163,24 +114,32 @@ const Home = () => {
             },
           }}
         >
-          <StatBox icon={Artist} title={"Artists"} value={"24"} />
-          <StatBox icon={TotalMusic} title={"Total of music"} value={"128"} />
+          <StatBox icon={LibraryMusicIcon} title={"Artists"} value={"24"} />
+          <StatBox
+            icon={LibraryMusicIcon}
+            title={"Total of music"}
+            value={"128"}
+          />
 
           <Box
             sx={{
-              gridColumn: "span 6",
+              gridColumn: "span 10",
               gridRow: "span 2",
               borderRadius: "10px",
               backgroundColor: "white",
               padding: "10px",
             }}
           >
-            <BarChart data={barChartData} options={barChartOptions} />
+            {/* <BarChart /> */}
           </Box>
 
-          <StatBox icon={Artist} title={"Total of plays"} value={"1028"} />
           <StatBox
-            icon={TotalTime}
+            icon={LibraryMusicIcon}
+            title={"Total of plays"}
+            value={"1028"}
+          />
+          <StatBox
+            icon={LibraryMusicIcon}
             title={"Total time played"}
             value={"1920.6 hours"}
           />

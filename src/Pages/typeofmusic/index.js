@@ -6,7 +6,6 @@ import {
   setGenres,
   updateGenre,
 } from "../../Redux/reducers/musicReducer";
-import TypeData from "../../Data/TypeMusic.json";
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -24,64 +23,120 @@ import {
   Modal,
   Grid,
   Paper,
-  useMediaQuery,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { GetAllGenre } from "../../util/ApiFunction";
+import { getType } from "../../Redux/reducers/typeSlice";
 
-const TypeMusic = () => {
-  const dispatch = useDispatch();
-  const genres = useSelector((state) => state.music.genres);
+const TypeMusic = ({isSidebarOpen, setIsSidebarOpen}) => {
+  const navigate = useNavigate();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingGenre, setEditingGenre] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
+  const [addClick, setAddClick] = useState(false);
+  const [typeOfArtist, setTypeOfArtist] = useState([]);
   const [form, setForm] = useState({
     nameTypeMusic: "",
     description: "",
   });
-
-  const navigate = useNavigate();
-
+  const dispatch = useDispatch();
+  const TypeData = useSelector((state) => state.types.types);
+ 
+  const getgenre = GetAllGenre();
   useEffect(() => {
-    dispatch(setGenres(TypeData));
+    const fetchGenres = async () => {
+      try {
+        const data = await getgenre();
+        if (data !== null) {
+          dispatch(getType(data.data));
+        }
+      } catch (error) {
+        console.error('Error fetching genres:', error);
+      }
+    };
+    fetchGenres();
   }, [dispatch]);
 
   const showModal = (genre) => {
     setEditingGenre(genre);
     setImageUrl(genre ? genre.backgroundImage : "");
     setForm({
-      nameTypeMusic: genre ? genre.nameTypeMusic : "",
+      nameTypeMusic: genre ? genre.name : "",
       description: genre ? genre.description : "",
     });
     setIsModalVisible(true);
   };
 
+  const handleAddClick = () => {
+    // setIsSidebarOpen(!isSidebarOpen);
+    
+    setAddClick(true);
+    setIsModalVisible(true);
+  }
+
   const handleOk = () => {
-    const genreData = {
-      ...form,
-      createdate: new Date().toISOString().split("T")[0],
-      NumberOfPlayed: "0",
-      backgroundImage: imageUrl,
-    };
-    if (editingGenre) {
-      dispatch(
-        updateGenre({ idTypeMusic: editingGenre.idTypeMusic, ...genreData })
-      );
+    if (form.nameTypeMusic) {
+      const selectedType = TypeData.find(type => type.name === form.nameTypeMusic);
+      const genreExists = typeOfArtist.some(item => item.nameTypeMusic === form.nameTypeMusic);
+  
+      if (addClick) {
+        // Add new genre logic
+        if (genreExists) {
+          alert("This genre already exists."); 
+          return;
+        }
+  
+        const newGenre = {
+          ...form,
+          description: selectedType ? selectedType.description : form.description,
+          backgroundImage: imageUrl,
+          idTypeMusic: Date.now(),
+          createdate: new Date().toISOString().split("T")[0],
+          NumberOfPlayed: "0",
+        };
+        setTypeOfArtist([...typeOfArtist, newGenre]);
+        dispatch(addGenre(newGenre));
+      } else if (editingGenre) {
+        // Update existing genre logic
+        const genreData = {
+          ...form,
+          backgroundImage: imageUrl,
+        };
+        setTypeOfArtist(...typeOfArtist , genreData)
+      }
+  
+      setIsModalVisible(false);
+      setEditingGenre(null);
+      setImageUrl("");
+      setForm({
+        nameTypeMusic: "",
+        description: "",
+      });
     } else {
-      dispatch(addGenre({ idTypeMusic: Date.now(), ...genreData }));
+      alert("Please enter a genre name."); 
     }
-    setIsModalVisible(false);
-    setEditingGenre(null);
-    setImageUrl("");
   };
+  
 
   const handleCancel = () => {
+    setAddClick(false);
     setIsModalVisible(false);
     setEditingGenre(null);
     setImageUrl("");
+    setForm({
+      nameTypeMusic: "",
+      description: "",
+    });
   };
 
   const handleDelete = (idTypeMusic) => {
     dispatch(deleteGenre(idTypeMusic));
+    setTypeOfArtist(typeOfArtist.filter((item) => item.idTypeMusic !== idTypeMusic));
   };
 
   const handleImageChange = (event) => {
@@ -93,18 +148,6 @@ const TypeMusic = () => {
     };
   };
 
-  // const uploadProps = {
-  //   beforeUpload: (file) => {
-  //     const isJpg = file.type === "image/jpeg";
-  //     if (!isJpg) {
-  //       message.error("You can only upload JPG files!");
-  //     }
-  //     return isJpg;
-  //   },
-  //   onChange: handleImageChange,
-  //   showUploadList: false,
-  // };
-
   const handleDetail = (item) => {
     navigate(`${item.idTypeMusic}`, {
       state: {
@@ -112,15 +155,6 @@ const TypeMusic = () => {
       },
     });
   };
-
-  const genresList = [
-    { id: 1, name: "Pop" },
-    { id: 2, name: "Rock" },
-    { id: 3, name: "Jazz" },
-    { id: 4, name: "Classical" },
-    { id: 5, name: "Hip Hop" },
-    { id: 6, name: "Electronic" },
-  ];
 
   return (
     <Box
@@ -144,18 +178,18 @@ const TypeMusic = () => {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => showModal(null)}
+          onClick={handleAddClick}
           sx={{ marginBottom: 2, borderRadius: 4 }}
         >
           Add Genre
         </Button>
         <Grid container spacing={2}>
-          {genres.map((item) => (
+          {typeOfArtist.map((item) => (
             <Grid item key={item.idTypeMusic} xs={12} sm={6} md={4}>
               <Card
                 sx={{
                   position: "relative",
-                  background: `url(${item.backgroundImage}) no-repeat center center`,
+                  background: `url(${backGround}) no-repeat center center`,
                   backgroundSize: "cover",
                   color: "#fff",
                   height: "100%",
@@ -197,11 +231,11 @@ const TypeMusic = () => {
                     justifyContent: "flex-end",
                   }}
                 >
-                  <Button
+                  {/* <Button
                     startIcon={<EditIcon />}
                     onClick={() => showModal(item)}
                     sx={{ color: "#fff" }}
-                  />
+                  /> */}
                   <Button
                     startIcon={<DeleteIcon />}
                     onClick={() => handleDelete(item.idTypeMusic)}
@@ -242,24 +276,65 @@ const TypeMusic = () => {
               noValidate
               autoComplete="off"
             >
-              <TextField
-                required
-                label="Genre Name"
-                value={form.nameTypeMusic}
-                onChange={(e) =>
-                  setForm({ ...form, nameTypeMusic: e.target.value })
-                }
-                fullWidth
-              />
-              <TextField
-                label="Description"
-                multiline
-                fullWidth
-                value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-              />
+              {addClick ? (
+                <>
+                  <FormControl sx={{ m: 1, minWidth: 120 }}>
+                    <InputLabel id="demo-simple-select-helper-label">Genres</InputLabel>
+                    <Select
+                      labelId="demo-simple-select-helper-label"
+                      id="demo-simple-select-helper"
+                      value={form.nameTypeMusic}
+                      label="Genres"
+                      onChange={(e) => {
+                        const selectedGenre = e.target.value;
+                        const selectedType = TypeData.find(type => type.name === selectedGenre);
+                        setForm({
+                          ...form,
+                          nameTypeMusic: selectedGenre,
+                          description: selectedType ? selectedType.description : ''
+                        });
+                      }}
+                    >
+                      {TypeData.map((type) => (
+                        <MenuItem key={type.id} value={type.name}>
+                          {type.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText>With label + helper text</FormHelperText>
+                  </FormControl>
+                  <TextField
+                    label="Description"
+                    multiline
+                    fullWidth
+                    value={form.description}
+                    onChange={(e) =>
+                      setForm({ ...form, description: e.target.value })
+                    }
+                  />
+                </>
+              ) : (
+                <>
+                  <TextField
+                    required
+                    label="Genre Name"
+                    value={form.nameTypeMusic}
+                    onChange={(e) =>
+                      setForm({ ...form, nameTypeMusic: e.target.value })
+                    }
+                    fullWidth
+                  />
+                  <TextField
+                    label="Description"
+                    multiline
+                    fullWidth
+                    value={form.description}
+                    onChange={(e) =>
+                      setForm({ ...form, description: e.target.value })
+                    }
+                  />
+                </>
+              )}
               <Button variant="contained" component="label" sx={{ m: 1 }}>
                 Upload Image
                 <input

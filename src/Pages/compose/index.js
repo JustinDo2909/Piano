@@ -1,6 +1,4 @@
-
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Typography,
@@ -25,47 +23,88 @@ import {
 import * as Tone from "tone";
 import { parseMidiFile, parsedMidiToCustomFormat } from "./midiConverter";
 import backGround from "../../image/3766921.jpg";
+import { useDispatch, useSelector } from "react-redux";
+import { getSong } from "../../Redux/reducers/songsSlice";
+import { AddSheetMidi } from "../../util/ApiFunction";
+import { useNavigate } from "react-router-dom";
 
 const { Title, Text } = Typography;
-
-const sampleSongs = [
-  { name: "Song A" },
-  { name: "Song B" },
-  { name: "Song C" },
-];
 
 const Compose = () => {
   const [outputLeft, setOutputLeft] = useState("");
   const [outputRight, setOutputRight] = useState("");
   const [parsedMidi, setParsedMidi] = useState(null);
   const [speed, setSpeed] = useState(1);
-  const [selectedSong, setSelectedSong] = useState(null);
+  const [selectedSong, setSelectedSong] = useState(""); // Initialize with an empty string
   const [isFileUploaded, setIsFileUploaded] = useState(false);
+  const [isAudioContextStarted, setIsAudioContextStarted] = useState(false);
+  const [topSignature, setTopSignature] = useState("");
+  const [bottomSignature, setBottomSignature] = useState("");
+  const [instrumentId, setInstrumentId] = useState("");
+  const [songSelectedData , setSongSelectedData] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const navigate = useNavigate('')
 
+  const dispatch = useDispatch();
+  const songs = useSelector((state) => state.songs.songs);
+
+  const [sampleSongs, setSampleSongs] = useState({
+    composer: "",
+    createdTime: "",
+    genres: [],
+    SongId: "",
+    image: "",  
+    lastUpdatedTime: "",
+    title: "",
+    TopSignature: "",
+    BottomSignature: "",
+    InstrumentId: "",
+    SheetFile:""
+  });
+
+  useEffect(() => {
+    if (songs.data && selectedSong) {
+      const foundSong = songs.data.find((song) => song.title === selectedSong);
+      if (foundSong) {
+        setSongSelectedData(foundSong);
+      } else {
+        console.log("Song not found");
+      }
+    }
+  }, [songs.data, selectedSong]);
+  
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
+    setUploadedFile(file);
     const reader = new FileReader();
-
+    
     reader.onload = (e) => {
       const arrayBuffer = e.target.result;
       const midi = new Uint8Array(arrayBuffer);
+      
       try {
         const parsed = parseMidiFile(midi);
         setParsedMidi(parsed);
-
+        
         const { leftHand, rightHand } = parsedMidiToCustomFormat(parsed);
         setOutputLeft(leftHand);
         setOutputRight(rightHand);
         setIsFileUploaded(true);
+        
+        // Convert file to Base64 string
+        // const base64String = btoa(
+        //   new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+        // );
+        // setUploadedFile(base64String);
       } catch (error) {
         alert("Failed to parse MIDI file.");
       }
     };
-
+    
     reader.onerror = () => {
       alert("Failed to read file.");
     };
-
+    
     reader.readAsArrayBuffer(file);
   };
 
@@ -77,18 +116,30 @@ const Compose = () => {
     alert("MIDI file removed.");
   };
 
-  const handleSaveFile = () => {
-    if (outputLeft && outputRight && selectedSong) {
-      const songData = {
-        leftHand: outputLeft,
-        rightHand: outputRight,
-      };
-      localStorage.setItem(selectedSong, JSON.stringify(songData));
-      alert(`Notes saved to ${selectedSong}.`);
+  const handleSaveFile = async() => {
+    if (selectedSong && uploadedFile) {
+      const topSignatureInt = parseInt(topSignature, 10) || 0;
+      const bottomSignatureInt = parseInt(bottomSignature, 10) || 0;
+      const instrumentIdInt = parseInt(instrumentId, 10) || 0;
+      
+      const response = await AddSheetMidi(
+        songSelectedData.id,
+        instrumentIdInt,
+        topSignatureInt,
+        bottomSignatureInt,
+        uploadedFile
+      );
+      
+      if (response) {
+        console.log(response);
+        // Handle success response here
+      }
     } else {
       alert("No notes to save or no song selected.");
     }
   };
+  
+  
 
   const parseNote = (note) => {
     const [pitch, duration] = note.split("_");
@@ -123,28 +174,40 @@ const Compose = () => {
     });
   };
 
-  const handlePlayMusic = async () => {
-    await Tone.start();
-    const leftHandSynth = new Tone.Synth().toDestination();
-    const rightHandSynth = new Tone.Synth().toDestination();
+  const handleStartAudioContext = async () => {
+   navigate('/Sheet')
+  };
 
-    playNotes(outputLeft, leftHandSynth);
-    playNotes(outputRight, rightHandSynth);
+  const handlePlayMusic = async () => {
+    if (!isAudioContextStarted) {
+      alert("Please start the audio context first.");
+      return;
+    }
+
+    try {
+      const leftHandSynth = new Tone.Synth().toDestination();
+      const rightHandSynth = new Tone.Synth().toDestination();
+
+      playNotes(outputLeft, leftHandSynth);
+      playNotes(outputRight, rightHandSynth);
+    } catch (error) {
+      console.error("Failed to play music", error);
+    }
   };
 
   return (
     <Box
-      sx={{
-        height: "100%",
-        backgroundImage: `url(${backGround})`,
-        backgroundSize: "cover",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "50px",
-        
-      }}
+    sx={{
+      height: "100%",
+      backgroundImage: `url(${backGround})`,
+      backgroundSize: "cover",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: "50px",
+    }}
     >
+      {console.log(sampleSongs)}
       <Card
         sx={{
           maxWidth: "50%",
@@ -169,13 +232,14 @@ const Compose = () => {
               <FormControl fullWidth>
                 <InputLabel sx={{ color: "white" }}>Select a song</InputLabel>
                 <Select
-                  value={selectedSong}
+                  value={selectedSong || ""}
                   onChange={(e) => setSelectedSong(e.target.value)}
                   label="Select a song"
                   sx={{ color: "white" }}
                 >
-                  {sampleSongs.map((song) => (
-                    <MenuItem key={song.name} value={song.name}>
+                  <MenuItem value="" disabled>Select a song</MenuItem>
+                  {songs.data.map((song) => (
+                    <MenuItem key={song.title} value={song.title}>
                       <span
                         style={{
                           color: localStorage.getItem(song.name)
@@ -183,7 +247,7 @@ const Compose = () => {
                             : "red",
                         }}
                       >
-                        {song.name}
+                        {song.title}
                       </span>
                     </MenuItem>
                   ))}
@@ -216,12 +280,39 @@ const Compose = () => {
               </Button>
             </Grid>
           </Grid>
-          <Grid
-            container
-            spacing={2}
-            justifyContent="center"
-            sx={{ marginTop: 2 }}
-          >
+         
+          <Grid container spacing={2} justifyContent="center" sx={{ marginTop: 2 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Top Signature"
+                type="number"
+                fullWidth
+                value={topSignature}
+                onChange={(e) => setTopSignature(e.target.value)}
+                sx={{ marginBottom: 2 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Bottom Signature"
+                type="number"
+                fullWidth
+                value={bottomSignature}
+                onChange={(e) => setBottomSignature(e.target.value)}
+                sx={{ marginBottom: 2 }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Instrument ID"
+                type="text"
+                fullWidth
+                value={instrumentId}
+                onChange={(e) => setInstrumentId(e.target.value)}
+                sx={{ marginBottom: 2 }}
+              />
+            </Grid>
+            <Grid container spacing={2} justifyContent="center" sx={{ marginTop: 2 }}>
             <Grid item xs={12} sm={4}>
               <Button
                 variant="contained"
@@ -279,15 +370,25 @@ const Compose = () => {
                 Save
               </Button>
             </Grid>
+           </Grid>
+            <Grid item xs={12}>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={handleStartAudioContext}
+                sx={{
+                  backgroundColor: "#fff",
+                  color: "#001529",
+                  "&:hover": {
+                    backgroundColor: "#001529",
+                    color: "#fff",
+                  },
+                }}
+              >
+                Add Sheet Music
+              </Button>
+            </Grid>
           </Grid>
-          <Grid
-            container
-            spacing={2}
-            justifyContent="center"
-            sx={{ marginTop: 2 }}
-          >
-          </Grid>
-         
         </CardContent>
       </Card>
     </Box>

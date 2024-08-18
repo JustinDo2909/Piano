@@ -1,29 +1,30 @@
 // src/App.js
-import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { LoadingOutlined } from '@ant-design/icons';
-import LayOut from './Pages/layout/Layout';
-import Detail from './Pages/detail';
-import MusicTypeDetail from './Pages/musicTypeDetail';
-import ProtectedRoute from '../src/PrivateRouter/PrivateRouter';
-import NotFound from '../src/PrivateRouter/NotFound';
+import React, { lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { LoadingOutlined } from "@ant-design/icons";
+import LayOut from "./Pages/layout/Layout";
+import Detail from "./Pages/detail";
+import MusicTypeDetail from "./Pages/musicTypeDetail";
+import ProtectedRoute from "../src/PrivateRouter/PrivateRouter";
+import NotFound from "../src/PrivateRouter/NotFound";
 
-const Home = lazy(() => import('./Pages/dashboard'));
-const Customer = lazy(() => import('./Pages/customer'));
-const Artist = lazy(() => import('./Pages/artist'));
-const Profile = lazy(() => import('./Pages/profile'));
-const TypeMusic = lazy(() => import('./Pages/typeofmusic'));
-const Compose = lazy(() => import('./Pages/compose'));
-const MyAlbum = lazy(() => import('./Pages/album'));
-const Login = lazy(() => import('./Pages/login'));
-const LoginAdmin = lazy(() => import('./Pages/login/admin'));
+const Home = lazy(() => import("./Pages/dashboard"));
+const Users = lazy(() => import("./Pages/users"));
+const Artist = lazy(() => import("./Pages/artist"));
+const Profile = lazy(() => import("./Pages/profile"));
+const TypeMusic = lazy(() => import("./Pages/typeofmusic"));
+const Compose = lazy(() => import("./Pages/compose"));
+const Sheet = lazy(()=> import("./Pages/sheet"))
+const MyAlbum = lazy(() => import("./Pages/album"));
+const Login = lazy(() => import("./Pages/login"));
+const LoginAdmin = lazy(() => import("./Pages/login/admin"));
 
 const Loading = () => (
   <div
     style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
     }}
   >
     <LoadingOutlined />
@@ -35,14 +36,14 @@ function App() {
     <BrowserRouter>
       <div className="app">
         <Routes>
-          <Route path="/" element={<Navigate to="/Login" replace />} />
-
           <Route element={<LayOut />}>
+          
+            <Route path="/" element={<Navigate to="/Home" replace />} />
             <Route
               path="Home"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={Home} />
+                  <ProtectedRoute element={Home} requiredRole={"Admin"}/>
                 </Suspense>
               }
             />
@@ -55,10 +56,10 @@ function App() {
               }
             />
             <Route
-              path="Customers"
+              path="Users"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={Customer} />
+                  <ProtectedRoute element={Users} />
                 </Suspense>
               }
             />
@@ -66,7 +67,7 @@ function App() {
               path="Artist"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={Artist} />
+                  <ProtectedRoute element={Artist}requiredRole={"Admin"} />
                 </Suspense>
               }
             />
@@ -82,7 +83,7 @@ function App() {
               path="MyAlbum"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={MyAlbum} />
+                  <ProtectedRoute element={MyAlbum} requiredRole={"Artist"} />
                 </Suspense>
               }
             />
@@ -90,7 +91,7 @@ function App() {
               path="TypeOfMusic"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={TypeMusic} />
+                  <ProtectedRoute element={TypeMusic}requiredRole={"Artist"} />
                 </Suspense>
               }
             />
@@ -106,7 +107,15 @@ function App() {
               path="Compose"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={Compose} />
+                  <ProtectedRoute element={Compose} requiredRole={"Artist"}/>
+                </Suspense>
+              }
+            />
+          <Route
+              path="Sheet"
+              element={
+                <Suspense fallback={<Loading />}>
+                  <ProtectedRoute element={Sheet} requiredRole={"Artist"}/>
                 </Suspense>
               }
             />
@@ -137,8 +146,8 @@ function App() {
               </Suspense>
             }
           />
-          
-          <Route path="*" element={<Navigate to="/404" replace />} />
+
+          {/* <Route path="*" element={<Navigate to="/404" replace />} /> */}
         </Routes>
       </div>
     </BrowserRouter>

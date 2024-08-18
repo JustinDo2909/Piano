@@ -8,16 +8,22 @@ import {
   Button,
   Modal,
   TextField,
-  Grid,
+  CircularProgress,
 } from "@mui/material";
 import { styled } from "@mui/system";
-import users from "../../Data/User.json";
 import backGround from "../../image/3766921.jpg";
-import { GetMyInfo } from "../../util/ApiFunction";
+import {
+  CheckValidCode,
+  ForgotPassword,
+  ResetPassword,
+  GetMyInfo,
+  UpdateProfile,
+} from "../../util/ApiFunction";
 import { useDispatch, useSelector } from "react-redux";
-import { info } from "../../Redux/reducers/authSlice";
+import { info, logout } from "../../Redux/reducers/authSlice";
+import { useNavigate } from "react-router-dom";
 
-
+// Styled components
 const BackgroundContainer = styled(Box)(({ theme }) => ({
   backgroundImage: `url(${backGround})`,
   backgroundSize: "cover",
@@ -56,93 +62,159 @@ const ProfileInfo = styled(Box)(({ theme }) => ({
   textAlign: "center",
 }));
 
-const ProfileStats = styled(Box)(({ theme }) => ({
-  display: "flex",
-  justifyContent: "space-around",
-  marginTop: "15px",
-}));
-
-const ProfileStat = styled(Box)(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  textAlign: "center",
-  fontSize: "14px",
-  color: "#333",
+const ModalContent = styled(Box)(({ theme }) => ({
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "90%",
+  maxWidth: "500px",
+  bgcolor: "background.paper",
+  borderRadius: 2,
+  boxShadow: 24,
+  p: 4,
 }));
 
 const Profile = () => {
-const dispatch = useDispatch();
-  const [user, setUser] = useState({});
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [forgotPassword, setForgotPassword] = useState(false);
+  const [step, setStep] = useState(1);
+  const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [response, setRespone] = useState();
   const userData = useSelector((state) => state.authUser.authUser);
+  const [email, setEmail] = useState(userData.data.email);
+
+  const convertDateToISO = (dateStr) => {
+    const [month, day, year] = dateStr.split('/');
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  };
+
   const [editForm, setEditForm] = useState({
-    name: "",
-    email: "",
-  });
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
+    id: userData.data.id,
+    userName: userData.data.userName,
+    name: userData.data.name,
+    email: userData.data.email,
+    phoneNumber: userData.data.phoneNumber,
+    dateOfBirth: userData.data.dateOfBirth
+      ? convertDateToISO(userData.data.dateOfBirth)
+      : '',
+    passwordHash: '',
   });
 
+  const getMyInfo = GetMyInfo()
   useEffect(() => {
-    setEditForm({
-      name: userData.name,
-      email: userData.email,
-    });
-  }, []);
-  const getMyInfo = GetMyInfo();
-  useEffect(() => {
-    const getCustomer = async () => {
-      const data = await getMyInfo();
-      if (data !== null) {
-       dispatch(info(data))
-       console.log(userData.role)
-       console.log(data.data)
+    const fetchData = async () => {
+      try {
+        const data = await getMyInfo();
+        if (data) {
+          dispatch(info(data));
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
       }
-      console.log('cut')
     };
-    getCustomer();
-  },[])
-  
+    fetchData();
+  }, [dispatch]);
 
-  const handleEditClick = () => {
-    setIsEditModalOpen(true);
-  };
-
-  const handlePasswordClick = () => {
-    setIsPasswordModalOpen(true);
-  };
+  const handleEditClick = () => setIsEditModalOpen(true);
+  const handlePasswordClick = () => setForgotPassword(true);
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
-    setEditForm({
-      ...editForm,
+    setEditForm((prevForm) => ({
+      ...prevForm,
       [name]: value,
-    });
+    }));
   };
 
-  const handlePasswordChange = (e) => {
-    const { name, value } = e.target;
-    setPasswordForm({
-      ...passwordForm,
-      [name]: value,
-    });
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    try {
+      const result = await UpdateProfile(editForm);
+      if (result.status === 200) {
+        const updatedUserData = await result.data;
+        dispatch(info(updatedUserData.data));
+        window.location.reload();
+      }
+      setIsEditModalOpen(false);
+    } catch (error) {
+      setError("An error occurred while updating your profile.");
+    }
   };
 
-  const handleSaveEdit = () => {
-    setUser({
-      ...user,
-      name: editForm.name,
-      email: editForm.email,
-    });
-    setIsEditModalOpen(false);
+  const handleNextStep = async () => {
+    try {
+      if (step === 1 && email) {
+        const rep = await ForgotPassword(email);
+        if (rep.status === 200) {
+          alert("Please check your email to enter the code");
+          setStep(step + 1);
+        } else {
+          setError("Your email is not correct");
+        }
+      } else if (step === 2 && code) {
+        const rep = await CheckValidCode(email, code);
+        if (rep.status === 200) {
+          alert("Please enter your new password");
+          setRespone(rep.data.data.result);
+          setStep(step + 1);
+        } else {
+          setError("Invalid verification code");
+        }
+      } else if (step === 3 && newPassword && newPassword === confirmPassword) {
+        setLoading(true);
+        const rep = await ResetPassword(response, newPassword, confirmPassword);
+        if (rep.status === 200) {
+          setSuccessMessage("Your password has been successfully updated!");
+          setForgotPassword(false);
+          setStep(1);
+          setEmail("");
+          setCode("");
+          setNewPassword("");
+          setConfirmPassword("");
+          dispatch(logout());
+          navigate('/login');
+        } else {
+          setError("Your passwords do not match");
+        }
+        setLoading(false);
+      } else {
+        setError("Please fill out all fields correctly.");
+        setTimeout(() => setError(""), 3000);
+      }
+    } catch (error) {
+      setError("An error occurred during the password reset process.");
+    }
+  };
+  
+
+  const handleCloseModal = () => {
+    setForgotPassword(false);
+    setStep(1);
+    setEmail("");
+    setCode("");
+    setConfirmPassword("");
+    setNewPassword("");
   };
 
-  const handleSavePassword = () => {
-    setIsPasswordModalOpen(false);
-  };
+  if (loading) {
+    return (
+      <Box mt={20} mb={38} textAlign={"center"}>
+        <CircularProgress size={50} color="primary" />
+        <Box mt={2}>
+          <h3>LOADING. . .</h3>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <BackgroundContainer>
@@ -151,18 +223,19 @@ const dispatch = useDispatch();
           component="img"
           alt="Background"
           height="180"
-          image={user.background}
+          image={userData.background}
           sx={{ objectFit: "cover", filter: "grayscale(50%)" }}
         />
         <ProfileInfo>
           <Avatar
-            alt={userData.name}
-            src={user.background}
+            alt={userData.data.name}
+            src={userData.background}
             sx={{ width: 100, height: 100, mb: 2, mx: "auto" }}
           />
-          <ProfileTitle variant="h3">{userData.name}</ProfileTitle>
-          <ProfileDescription>{userData.email}</ProfileDescription>
-         
+          <ProfileTitle>{userData.data.name}</ProfileTitle>
+          <ProfileDescription>{userData.data.email}</ProfileDescription>
+          <ProfileDescription>{userData.data.phoneNumber}</ProfileDescription>
+          <ProfileDescription>{userData.data.dateOfBirth}</ProfileDescription>
           <Button
             variant="contained"
             color="primary"
@@ -184,110 +257,178 @@ const dispatch = useDispatch();
 
       {/* Edit Info Modal */}
       <Modal
-        open={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        aria-labelledby="edit-info-modal-title"
-        aria-describedby="edit-info-modal-description"
+      open={isEditModalOpen}
+      onClose={() => setIsEditModalOpen(false)}
+      aria-labelledby="edit-info-modal-title"
+      aria-describedby="edit-info-modal-description"
+    >
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '90%',
+          maxWidth: 600,
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          boxShadow: 24,
+          p: 4,
+        }}
       >
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "20%",
-            maxWidth: 600,
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          <Typography id="edit-info-modal-title" variant="h6" component="h2">
-            Edit User Information
-          </Typography>
-          <TextField
-            label="Name"
-            name="name"
-            value={editForm.name}
-            onChange={handleEditChange}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="Email"
-            name="email"
-            value={editForm.email}
-            onChange={handleEditChange}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
+        <Typography id="edit-info-modal-title" variant="h6" component="h2" gutterBottom>
+          Edit User Information
+        </Typography>
+        <form onSubmit={handleSaveEdit}>
+          <Box mb={2}>
+            <TextField
+              label="Name"
+              name="name"
+              value={editForm.name}
+              onChange={handleEditChange}
+              fullWidth
+              variant="outlined"
+            />
+          </Box>
+          <Box mb={2}>
+            <TextField
+              label="Email"
+              name="email"
+              value={editForm.email}
+              onChange={handleEditChange}
+              fullWidth
+              variant="outlined"
+            />
+          </Box>
+          <Box mb={2}>
+            <TextField
+              label="Phone"
+              name="phoneNumber"
+              value={editForm.phoneNumber}
+              onChange={handleEditChange}
+              fullWidth
+              variant="outlined"
+            />
+          </Box>
+          <Box mb={2}>
+            <TextField
+              type="date"
+              name="dateOfBirth"
+              value={editForm.dateOfBirth}
+              onChange={handleEditChange}
+              fullWidth
+              variant="outlined"
+              InputLabelProps={{ shrink: true }}
+            />
+          </Box>
           <Button
             variant="contained"
             color="primary"
-            onClick={handleSaveEdit}
+            type="submit"
             sx={{ mt: 2 }}
           >
             Save
           </Button>
-        </Box>
-      </Modal>
+        </form>
+      </Box>
+    </Modal>
 
-      <Modal
-        open={isPasswordModalOpen}
-        onClose={() => setIsPasswordModalOpen(false)}
-        aria-labelledby="change-password-modal-title"
-        aria-describedby="change-password-modal-description"
-      >
-        <Box
+      {/* Forgot Password Modal */}
+     {forgotPassword && (
+        <Modal
           sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "80%",
-            maxWidth: 600,
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backdropFilter: 'blur(3px)',
           }}
+          open={forgotPassword}
+          onClose={handleCloseModal}
         >
-          <Typography
-            id="change-password-modal-title"
-            variant="h6"
-            component="h2"
+          <Box
+            p={4}
+            bgcolor="background.paper"
+            borderRadius={2}
+            boxShadow={3}
+            maxWidth="400px"
+            width="90%"
+            textAlign="center"
           >
-            Change Password
-          </Typography>
-          <TextField
-            label="Current Password"
-            name="currentPassword"
-            type="password"
-            value={passwordForm.currentPassword}
-            onChange={handlePasswordChange}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="New Password"
-            name="newPassword"
-            type="password"
-            value={passwordForm.newPassword}
-            onChange={handlePasswordChange}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSavePassword}
-            sx={{ mt: 2 }}
-          >
-            Change Password
-          </Button>
-        </Box>
-      </Modal>
+            <Typography variant="h4" fontWeight={'700'} gutterBottom>
+              {step === 1 && "Forgot Password"}
+              {step === 2 && "Verify Your Email"}
+              {step === 3 && "Reset Your Password"}
+            </Typography>
+            <Typography variant="body2" color="textSecondary" mb={2}>
+              {step === 1 && "Enter your email address to receive a password reset link."}
+              {step === 2 && "Enter the verification code sent to your email."}
+              {step === 3 && "Create a new password to access your account."}
+            </Typography>
+            {step === 1 && (
+              <TextField
+                fullWidth
+                label="Email Address"
+                variant="outlined"
+                value={email}
+                margin="dense"
+              />
+            )}
+            {step === 2 && (
+              <TextField
+                fullWidth
+                label="Verification Code"
+                variant="outlined"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                margin="dense"
+              />
+            )}
+            {step === 3 && (
+              <>
+                <TextField
+                  fullWidth
+                  label="New Password"
+                  variant="outlined"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  margin="dense"
+                />
+                <TextField
+                  fullWidth
+                  label="Confirm Password"
+                  variant="outlined"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  margin="dense"
+                  mt={2}
+                />
+              </>
+            )}
+            {error && (
+              <Typography color="error" mt={2}>
+                {error}
+              </Typography>
+            )}
+            {successMessage && (
+              <Typography color="primary" mt={2}>
+                {successMessage}
+              </Typography>
+            )}
+            <Box mt={3}>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={handleNextStep}
+              >
+                {step === 3 ? "Update Password" : "Next"}
+              </Button>
+            </Box>
+          </Box>
+        </Modal>
+      )}
     </BackgroundContainer>
   );
 };

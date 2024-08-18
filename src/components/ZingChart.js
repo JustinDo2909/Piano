@@ -13,7 +13,7 @@ import { ResponsiveLine } from "@nivo/line";
 const ZingChart = ({ data, chartData, isNonMediumScreens }) => {
   return (
     <Box
-      gridColumn="span 12"
+      gridColumn="span 16"
       gridRow={isNonMediumScreens ? "span 5" : "span 7"}
       sx={{
         backgroundColor: "#1B1A55",
@@ -192,19 +192,19 @@ const ZingChart = ({ data, chartData, isNonMediumScreens }) => {
               pointLabelYOffset={-12}
               useMesh={true}
               legends={[]}
-              // theme={{
-              //   textColor: "#fff",
-              //   axis: {
-              //     ticks: {
-              //       line: {
-              //         stroke: "#555555",
-              //       },
-              //       text: {
-              //         fill: "#fff",
-              //       },
-              //     },
-              //   },
-              // }}
+            // theme={{
+            //   textColor: "#fff",
+            //   axis: {
+            //     ticks: {
+            //       line: {
+            //         stroke: "#555555",
+            //       },
+            //       text: {
+            //         fill: "#fff",
+            //       },
+            //     },
+            //   },
+            // }}
             />
           </Box>
         </Grid>

@@ -17,9 +17,9 @@ const StatBox = ({ icon, title, value }) => {
       <Box
         style={{
           borderRadius: "1rem 0 30px 0",
-          height: "1rem",
+          height: "0.75rem",
           width: "80%",
-          backgroundColor: "#7a7f9d",
+          backgroundColor: "#9290C3",
         }}
       />
 
