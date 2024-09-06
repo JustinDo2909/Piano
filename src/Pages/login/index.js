@@ -8,9 +8,9 @@ import { CheckValidCode, createNewAccount, ForgotPassword, LoginUser, loginUserG
 import { useDispatch } from "react-redux";
 import { login } from "../../Redux/reducers/authSlice";
 import { GoogleOutlined } from "@ant-design/icons";
+import { SnackBar } from "../../components/Snackbar";
 
 const Login = () => {
-  const clientId = "76354534011-1jm36gsvnfsk27r2sovtvpa0vn2g8ho7.apps.googleusercontent.com";
   const dispatch = useDispatch();
   const [isActive, setIsActive] = useState(false);
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -37,10 +37,16 @@ const Login = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [response , setRespone] = useState();
+  const [response, setRespone] = useState();
   const handleActiveRightPanel = () => {
     setIsActive(!isActive);
   };
+  const [imageFile, setImageFile] = useState("");
+    const [snackbar, setSnackbar] = useState({
+      open: false,
+      message: "",
+      type: "",
+    });
 
   useEffect(() => {
     // Google API initialization is no longer needed if using `@react-oauth/google`
@@ -52,13 +58,16 @@ const Login = () => {
     try {
       if (userRegister.password === passwordConfirm) {
         if (validate()) {
-          const result = await createNewAccount(userRegister);
-          if (result.status < 200 || result.status >= 300) {
-            setError("Email already exists!");
+          const result = await createNewAccount(userRegister.username ,  userRegister.email ,userRegister.password ,
+             userRegister.phoneNumber , userRegister.name , userRegister.dateOfBirth , imageFile);
+
+             if (result.status < 200 || result.status >= 300) {
+              setSnackbar({open: true , message: 'Register Fail ! ' , type: 'error'})
           } else {
-            setTimeout(() => {
-              navigate("/login");
-            }, 10000);
+            setIsActive(false)
+            setUserRegister('');
+            setConfirmPassword("");
+            setSnackbar({open: true , message: 'Register success ! ' , type: 'success'})
           }
         }
       } else {
@@ -73,23 +82,6 @@ const Login = () => {
     setTimeout(() => {
       setError("");
     }, 3000);
-  };
-
-  const handleAdminLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const result = await LoginUser(userLogin);
-      if (result.status === 200) {
-        dispatch(login(userLogin));
-        console.log(result.data);
-        navigate("/Home");
-      }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleloginArtist = async (e) => {
@@ -112,7 +104,7 @@ const Login = () => {
 
   const handleInputRegisterChange = (e) => {
     const { name, value } = e.target;
-    setUserRegister({ ...userRegister, [name]: value });
+    setUserRegister((prevState) => ({ ...prevState, [name]: value }));
   };
 
   const handleInputLoginChange = (e) => {
@@ -129,10 +121,10 @@ const Login = () => {
       return false;
     }
 
-    if (!/^(0\d{9})$/.test(userRegister.phoneNumber)) {
-      setError("Please enter a valid phone number starting with '0' and containing 10 digits.");
-      return false;
-    }
+    // if (!/^(0\d{9})$/.test(userRegister.phoneNumber)) {
+    //   setError("Please enter a valid phone number starting with '0' and containing 10 digits.");
+    //   return false;
+    // }
 
     if (userRegister.password.length < 5) {
       setError("Please enter a password with at least 5 characters.");
@@ -146,46 +138,46 @@ const Login = () => {
     window.location.href = "https://api-piano-dev.amazingtech.vn/api/Auth/artist/login-google";
   };
 
-  const handleNextStep = async() => {
-    if(step === 1 && email){
+  const handleNextStep = async () => {
+    if (step === 1 && email) {
       const rep = await ForgotPassword(email)
       console.log(rep)
-      if(rep.status === 200){
-        alert("Please check your email to enter the code")
+      if (rep.status === 200) {
+        // alert("Please check your email to enter the code")
         setStep(step + 1);
-      }else{
+      } else {
         setError("Your email is not correct")
       }
     } else if (step === 2 && code) {
-      const rep = await CheckValidCode(email , code)
-      if(rep.status === 200){
-        alert("Please enter your new passowrd")
+      const rep = await CheckValidCode(email, code)
+      if (rep.status === 200) {
+        // alert("Please enter your new passowrd")
         console.log(rep.data.data.result)
         setRespone(rep.data.data.result)
         setStep(step + 1);
-      }else{
+      } else {
         setError("Your email is not correct")
       }
     } else if (step === 3 && newPassword && newPassword === confirmPassword) {
-      const rep = await ResetPassword(response , newPassword ,confirmPassword )
+      const rep = await ResetPassword(response, newPassword, confirmPassword)
       console.log(response)
-      if(rep.status === 200){
+      if (rep.status === 200) {
         setLoading(true);
-      setTimeout(() => {
-        setLoading(false);
-        setSuccessMessage("Your password has been successfully updated!");
-        setForgotPassword(false);
-        setStep(1);
-        setEmail("");
-        setCode("");
-        setNewPassword("");
-        setConfirmPassword("");
-      }, 2000);
+        setTimeout(() => {
+          setLoading(false);
+          setSuccessMessage("Your password has been successfully updated!");
+          setForgotPassword(false);
+          setStep(1);
+          setEmail("");
+          setCode("");
+          setNewPassword("");
+          setConfirmPassword("");
+        }, 2000);
 
-      }else{
+      } else {
         setError("Your password not match")
       }
-     
+
     } else {
       setError("Please fill out all fields correctly.");
       setTimeout(() => {
@@ -202,6 +194,19 @@ const Login = () => {
     setConfirmPassword("");
     setNewPassword("");
   }
+
+  
+  const handleImageUploadChange = (event) => {
+    const file = event.target.files[0];
+    setImageFile(file);
+    if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
+      setImageFile(file)
+
+    } else {
+      setSnackbar({ open: true, message: 'You can only upload JPEG or PNG images!', type: 'error' });
+    }
+  };
+  
 
   if (loading) {
     return (
@@ -280,13 +285,12 @@ const Login = () => {
               required
             />
             <input
-              type="text"
-              name="image"
-              placeholder="Image"
-              value={userRegister.image}
-              onChange={handleInputRegisterChange}
-              required
-            />
+            type="file"
+            accept="image/jpeg, image/png"
+            // value={user.image}
+            onChange={handleImageUploadChange}
+            style={{ marginTop: 16, display: "block" }}
+          />  
             <button type="submit">Register</button>
             <span>or use your account</span>
             <div className="social-container">
@@ -339,9 +343,6 @@ const Login = () => {
                 <GoogleOutlined /> Google
               </button>
             </div>
-            <a href="#" onClick={handleAdminLogin}>
-              Login with Admin role
-            </a>
           </form>
         </div>
 
@@ -470,6 +471,12 @@ const Login = () => {
           </Box>
         </Modal>
       )}
+      <SnackBar
+          open={snackbar.open}
+          type={snackbar.type}
+          message={snackbar.message}
+          handleClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        />
     </div>
   );
 };

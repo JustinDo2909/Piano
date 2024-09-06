@@ -16,13 +16,14 @@ import {
   CheckValidCode,
   ForgotPassword,
   ResetPassword,
-  GetMyInfo,
   UpdateProfile,
+  getMyInfo,
 } from "../../util/ApiFunction";
 import { useDispatch, useSelector } from "react-redux";
 import { info, logout } from "../../Redux/reducers/authSlice";
 import { useNavigate } from "react-router-dom";
-
+import bgProfile from "../../image/pianoSlider.jpg"
+import { SnackBar } from "../../components/Snackbar";
 // Styled components
 const BackgroundContainer = styled(Box)(({ theme }) => ({
   backgroundImage: `url(${backGround})`,
@@ -36,11 +37,13 @@ const BackgroundContainer = styled(Box)(({ theme }) => ({
 }));
 
 const ProfileCard = styled(Card)(({ theme }) => ({
-  width: "500px",
+  width: "640px",
+  height: "460px",
   borderRadius: "20px",
   boxShadow: "0 8px 16px rgba(0, 0, 0, 0.1)",
   overflow: "hidden",
   backgroundColor: "#f9f9f9",
+  position: "relative",
 }));
 
 const ProfileTitle = styled(Typography)(({ theme }) => ({
@@ -60,6 +63,11 @@ const ProfileDescription = styled(Typography)(({ theme }) => ({
 const ProfileInfo = styled(Box)(({ theme }) => ({
   padding: "20px",
   textAlign: "center",
+  display: "block",
+  position: "absolute",
+  width: "100%",
+  top: "25%",
+  boxSizing: "border-box"
 }));
 
 const ModalContent = styled(Box)(({ theme }) => ({
@@ -91,10 +99,19 @@ const Profile = () => {
   const [response, setRespone] = useState();
   const userData = useSelector((state) => state.authUser.authUser);
   const [email, setEmail] = useState(userData.data.email);
+  const [imageFile, setImageFile] = useState("");
+  const [review, setReview] = useState("");
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    type: "",
+  });
+  const [user , setUser] = useState('');
 
-  const convertDateToISO = (dateStr) => {
-    const [month, day, year] = dateStr.split('/');
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  const formatDate = (dateString) => {
+    if (!dateString) return ""; // Handle empty or undefined date
+    const [month, day, year] = dateString.split("/");
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
   };
 
   const [editForm, setEditForm] = useState({
@@ -103,26 +120,31 @@ const Profile = () => {
     name: userData.data.name,
     email: userData.data.email,
     phoneNumber: userData.data.phoneNumber,
-    dateOfBirth: userData.data.dateOfBirth
-      ? convertDateToISO(userData.data.dateOfBirth)
-      : '',
-    passwordHash: '',
+    dateOfBirth: userData.data.dateOfBirth ? formatDate(userData.data.dateOfBirth) : '',
+    Image : imageFile
   });
-
-  const getMyInfo = GetMyInfo()
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await getMyInfo();
         if (data) {
           dispatch(info(data));
+          setUser(data.data)
+          console.log(data.data.image)
         }
       } catch (error) {
         console.error("Error fetching user info:", error);
       }
     };
     fetchData();
-  }, [dispatch]);
+  }, [dispatch , snackbar]);
+
+  useEffect(() => {
+    if (user.image) {
+      setReview(user.image);
+    }
+  }, [snackbar, user]);
+
 
   const handleEditClick = () => setIsEditModalOpen(true);
   const handlePasswordClick = () => setForgotPassword(true);
@@ -137,25 +159,41 @@ const Profile = () => {
 
   const handleSaveEdit = async (e) => {
     e.preventDefault();
+    const finalImageFile = review;
+    console.log(review)
     try {
-      const result = await UpdateProfile(editForm);
+      const result = await UpdateProfile(
+        editForm.id, 
+        editForm.userName,  
+        editForm.email, 
+        editForm.phoneNumber,
+        editForm.name,
+        editForm.dateOfBirth,
+        imageFile
+      );
+  
       if (result.status === 200) {
-        const updatedUserData = await result.data;
-        dispatch(info(updatedUserData.data));
         window.location.reload();
+        const updatedUserData = result.data;
+        dispatch(info(updatedUserData.data));
+        setIsEditModalOpen(false);
+        setSnackbar({ open: true, message: 'Change success!', type: 'success' });
+      } else {
+        setSnackbar({ open: true, message: 'Update failed!', type: 'error' });
       }
-      setIsEditModalOpen(false);
     } catch (error) {
-      setError("An error occurred while updating your profile.");
+      console.error("Error updating profile:", error);
+      setSnackbar({ open: true, message: 'An error occurred while updating your profile!', type: 'error' });
     }
   };
+  
 
   const handleNextStep = async () => {
     try {
       if (step === 1 && email) {
         const rep = await ForgotPassword(email);
         if (rep.status === 200) {
-          alert("Please check your email to enter the code");
+          // alert("Please check your email to enter the code");
           setStep(step + 1);
         } else {
           setError("Your email is not correct");
@@ -163,7 +201,7 @@ const Profile = () => {
       } else if (step === 2 && code) {
         const rep = await CheckValidCode(email, code);
         if (rep.status === 200) {
-          alert("Please enter your new password");
+          // alert("Please enter your new password");
           setRespone(rep.data.data.result);
           setStep(step + 1);
         } else {
@@ -182,19 +220,21 @@ const Profile = () => {
           setConfirmPassword("");
           dispatch(logout());
           navigate('/login');
+          setSnackbar({open: true , message: 'Register success ! ' , type: 'success'})
         } else {
-          setError("Your passwords do not match");
+          setSnackbar({open: true , message: 'Your passwords do not match ! ' , type: 'erorr'})
         }
         setLoading(false);
       } else {
-        setError("Please fill out all fields correctly.");
+        setSnackbar({open: true , message: 'Please fill out all fields correctly ! ' , type: 'erorr'})
         setTimeout(() => setError(""), 3000);
       }
     } catch (error) {
+      setSnackbar({open: true , message: 'An error occurred during the password reset process. ! ' , type: 'erorr'})
       setError("An error occurred during the password reset process.");
     }
   };
-  
+
 
   const handleCloseModal = () => {
     setForgotPassword(false);
@@ -204,6 +244,18 @@ const Profile = () => {
     setConfirmPassword("");
     setNewPassword("");
   };
+
+  const handleImageUploadChange = (event) => {
+    const file = event.target.files[0];
+    setImageFile(file);
+    if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
+      setImageFile(file)
+
+    } else {
+      setSnackbar({ open: true, message: 'You can only upload JPEG or PNG images!', type: 'error' });
+    }
+  };
+  
 
   if (loading) {
     return (
@@ -216,6 +268,16 @@ const Profile = () => {
     );
   }
 
+  const getTextFieldStyle = () => ({
+    mb: 2,
+    '& .MuiInputBase-input': {
+      fontSize: '14px',
+    },
+    '& .MuiOutlinedInput-input': {
+      padding: '12px',
+    },
+  });
+
   return (
     <BackgroundContainer>
       <ProfileCard>
@@ -223,32 +285,45 @@ const Profile = () => {
           component="img"
           alt="Background"
           height="180"
-          image={userData.background}
+          image={bgProfile}
           sx={{ objectFit: "cover", filter: "grayscale(50%)" }}
         />
         <ProfileInfo>
-          <Avatar
+          <Avatar 
             alt={userData.data.name}
-            src={userData.background}
-            sx={{ width: 100, height: 100, mb: 2, mx: "auto" }}
+            src={user.image}
+            sx={{ width: 100, height: 100, mb: 2, mx: "auto", border: "2px solid black" }}
           />
-          <ProfileTitle>{userData.data.name}</ProfileTitle>
-          <ProfileDescription>{userData.data.email}</ProfileDescription>
-          <ProfileDescription>{userData.data.phoneNumber}</ProfileDescription>
-          <ProfileDescription>{userData.data.dateOfBirth}</ProfileDescription>
+          <ProfileTitle>{user.name}</ProfileTitle>
+          <ProfileDescription>{user.email}</ProfileDescription>
+          <ProfileDescription>{user.phoneNumber}</ProfileDescription>
+          <ProfileDescription>{user.dateOfBirth}</ProfileDescription>
           <Button
             variant="contained"
-            color="primary"
             onClick={handleEditClick}
-            sx={{ mt: 2 }}
-          >
+            sx={{
+              mt: 2, ml: 2,
+              bgcolor: "#211f65",
+              color: "#eee",
+              "&:hover": {
+                backgroundColor: "#0f0e38",
+                color: "#fff",
+              },
+            }}>
             Edit Info
           </Button>
           <Button
             variant="outlined"
-            color="info"
             onClick={handlePasswordClick}
-            sx={{ mt: 2, ml: 2 }}
+            sx={{
+              mt: 2, ml: 2,
+              border: "1px solid black",
+              bgcolor: "inherit",
+              color: "#211f65",
+              "&:hover": {
+                borderColor: "#0f0e38",
+              }
+            }}
           >
             Change Password
           </Button>
@@ -257,30 +332,31 @@ const Profile = () => {
 
       {/* Edit Info Modal */}
       <Modal
-      open={isEditModalOpen}
-      onClose={() => setIsEditModalOpen(false)}
-      aria-labelledby="edit-info-modal-title"
-      aria-describedby="edit-info-modal-description"
-    >
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '90%',
-          maxWidth: 600,
-          bgcolor: 'background.paper',
-          borderRadius: 2,
-          boxShadow: 24,
-          p: 4,
-        }}
+        open={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        aria-labelledby="edit-info-modal-title"
+        aria-describedby="edit-info-modal-description"
       >
-        <Typography id="edit-info-modal-title" variant="h6" component="h2" gutterBottom>
-          Edit User Information
-        </Typography>
-        <form onSubmit={handleSaveEdit}>
-          <Box mb={2}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "80%",
+            maxWidth: 600,
+            bgcolor: "background.paper",
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 2,
+            boxSizing: "border-box"
+          }}
+        >
+          <Typography id="edit-info-modal-title" variant="h4" fontFamily="Roboto" mb="10px" gutterBottom>
+            Edit User Information
+          </Typography>
+          <form onSubmit={handleSaveEdit}>
+
             <TextField
               label="Name"
               name="name"
@@ -288,9 +364,10 @@ const Profile = () => {
               onChange={handleEditChange}
               fullWidth
               variant="outlined"
+              sx={getTextFieldStyle()}
             />
-          </Box>
-          <Box mb={2}>
+
+
             <TextField
               label="Email"
               name="email"
@@ -298,9 +375,10 @@ const Profile = () => {
               onChange={handleEditChange}
               fullWidth
               variant="outlined"
+              sx={getTextFieldStyle()}
             />
-          </Box>
-          <Box mb={2}>
+
+
             <TextField
               label="Phone"
               name="phoneNumber"
@@ -308,9 +386,10 @@ const Profile = () => {
               onChange={handleEditChange}
               fullWidth
               variant="outlined"
+              sx={getTextFieldStyle()}
             />
-          </Box>
-          <Box mb={2}>
+
+
             <TextField
               type="date"
               name="dateOfBirth"
@@ -319,22 +398,47 @@ const Profile = () => {
               fullWidth
               variant="outlined"
               InputLabelProps={{ shrink: true }}
+              sx={getTextFieldStyle()}
             />
-          </Box>
-          <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            sx={{ mt: 2 }}
-          >
-            Save
-          </Button>
-        </form>
-      </Box>
-    </Modal>
+             <input
+            type="file"
+            accept="image/jpeg, image/png"
+            // value={user.image}
+            onChange={handleImageUploadChange}
+            style={{ marginTop: 16, display: "block" }}
+          />  
+          {review && (
+            <CardMedia
+            component="img"
+            height="140"
+            image={imageFile ? URL.createObjectURL(imageFile) : review}
+            alt="profile image"
+          />
+          )}
+
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              sx={{
+                mt: 2,
+                bgcolor: "#211f65",
+                color: "#eee",
+                "&:hover": {
+                  backgroundColor: "#0f0e38",
+                  color: "#fff",
+                },
+              }}
+            >
+              Save
+            </Button>
+          </form>
+        </Box>
+      </Modal>
 
       {/* Forgot Password Modal */}
-     {forgotPassword && (
+      {forgotPassword && (
         <Modal
           sx={{
             display: 'flex',
@@ -429,6 +533,12 @@ const Profile = () => {
           </Box>
         </Modal>
       )}
+       <SnackBar
+          open={snackbar.open}
+          type={snackbar.type}
+          message={snackbar.message}
+          handleClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        />
     </BackgroundContainer>
   );
 };

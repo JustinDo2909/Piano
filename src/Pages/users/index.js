@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
+  Box,
   Button,
   Typography,
   Table,
@@ -12,7 +13,6 @@ import {
   Menu,
   MenuItem,
   Paper,
-  Box,
   Dialog,
   DialogActions,
   DialogContent,
@@ -21,37 +21,40 @@ import {
   InputBase,
   TableFooter,
   TablePagination,
+  Icon,
 } from "@mui/material";
-import { MoreVert, SearchOutlined } from "@mui/icons-material";
+import { MoreVert, SearchOutlined, PersonAdd } from "@mui/icons-material";
 import {
   addUser,
   deleteUserById,
   getUsers,
+  UpdateProfile,
   updateUser,
 } from "../../util/ApiFunction";
 import FlexBetween from "../../components/FlexBetween";
 import useDebounce from "../../util/Debounce";
-import { SnackbarError, SnackbarSuccess } from "../../components/Snackbar";
+import { SnackBar } from "../../components/Snackbar";
 import UsersModal from "./UserModal";
 
 const { styled } = require("@mui/system");
 
 const formatDate = (dateString) => {
-  if (!dateString) return ""; // Handle empty or undefined date
+  if (!dateString) return "";
   const [month, day, year] = dateString.split("/");
   return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 };
 
-const UserActionsMenu = ({ user, handleOpenModal, handleOpenDialog }) => {
+const GreenTableCell = styled(TableCell)`
+  color: green;
+  font-size: 16px;
+`;
+
+const UserActionsMenu = ({ user, onEdit, onDelete }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
 
   return (
     <>
@@ -63,10 +66,17 @@ const UserActionsMenu = ({ user, handleOpenModal, handleOpenDialog }) => {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={() => handleOpenModal(user)}>Edit</MenuItem>
         <MenuItem
           onClick={() => {
-            handleOpenDialog(user);
+            onEdit(user);
+            handleMenuClose();
+          }}
+        >
+          Edit
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            onDelete(user.id);
             handleMenuClose();
           }}
         >
@@ -77,48 +87,47 @@ const UserActionsMenu = ({ user, handleOpenModal, handleOpenDialog }) => {
   );
 };
 
-const GreenTableCell = styled(TableCell)`
-  color: green;
-  font-size: 16px;
+const TitleTableCell = styled(TableCell)`
+  color: #535C91;
+  font-size: 18px;
+`;
+const ItemTableCell = styled(TableCell)`
+  font-size: 12px;
 `;
 
 const Users = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarType, setSnackbarType] = useState("");
-  const [data, setData] = useState({
-    users: [],
-    totalPage: 0,
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    type: "",
   });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
+  const [data, setData] = useState({ users: [], totalPage: 0 });
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    rowsPerPage: 10,
+  });
+  const [dialog, setDialog] = useState({ open: false, userId: null });
   const [inputSearch, setInputSearch] = useState("");
-  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const inputSearchDebounced = useDebounce(inputSearch, 300);
 
   const fetchUsers = useCallback(async () => {
     try {
       const result = await getUsers(
-        currentPage,
-        rowsPerPage,
+        pagination.currentPage,
+        pagination.rowsPerPage,
         inputSearchDebounced
       );
-      if (result !== undefined) {
-        setData({
-          users: result.users,
-          totalPage: result.totalPage,
-        });
+      if (result) {
+        setData({ users: result.users, totalPage: result.totalPage });
       }
     } catch (error) {
-      setSnackbarMessage(error.message);
-      setSnackbarType("error");
+      setSnackbar({ open: true, message: error.message, type: "error" });
     }
-  }, [currentPage, rowsPerPage, inputSearchDebounced]);
+  }, [pagination.currentPage, pagination.rowsPerPage, inputSearchDebounced]);
 
   useEffect(() => {
     fetchUsers();
@@ -129,20 +138,20 @@ const Users = () => {
     setCurrentUser(
       user
         ? {
-            ...user,
-            dateOfBirth: formatDate(user.dateOfBirth),
-          }
+          ...user,
+          dateOfBirth: formatDate(user.dateOfBirth),
+        }
         : {
-            id: "",
-            userName: "",
-            email: "",
-            passwordHash: "",
-            phoneNumber: "",
-            name: "",
-            dateOfBirth: "",
-            role: "",
-            image: "",
-          }
+          id: "",
+          userName: "",
+          email: "",
+          passwordHash: "",
+          phoneNumber: "",
+          name: "",
+          dateOfBirth: "",
+          role: "",
+          image: "",
+        }
     );
     setIsModalVisible(true);
   };
@@ -160,125 +169,143 @@ const Users = () => {
     }));
   };
 
-  const handleOpenDialog = (user) => {
-    setUserToDelete(user.id);
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setUserToDelete(null);
-  };
-
-  const handleSaveCustomer = async (event) => {
+  const handleSaveUser = async (event) => {
+    console.log(currentUser)
     event.preventDefault();
     try {
-      if (isEditMode) {
-        // Update existing customer
-        console.log(currentUser);
-        const result = await updateUser(currentUser);
-        if (result.message !== undefined) {
-          fetchUsers();
-          setSnackbarMessage("User Edited successfully.");
-          setSnackbarType("success");
-          handleCloseModal();
-        }
-      } else {
-        console.log(currentUser);
-        const result = await addUser(currentUser);
-        if (result.message !== undefined) {
-          fetchUsers();
-          setSnackbarMessage("User added successfully.");
-          setSnackbarType("success");
-          handleCloseModal();
-        }
+      console.log( 
+        currentUser.userName,
+        currentUser.email,
+        currentUser.passwordHash,
+        currentUser.phoneNumber,
+        currentUser.name,
+        currentUser.dateOfBirth,
+        currentUser.role,
+        currentUser.image)
+      const result = isEditMode
+        ? await UpdateProfile(
+          currentUser.id,
+          currentUser.userName,
+          currentUser.email,
+          currentUser.phoneNumber,
+          currentUser.name,
+          currentUser.dateOfBirth,
+          currentUser.image,
+        )
+        : await addUser( 
+          currentUser.userName,
+          currentUser.email,
+          currentUser.passwordHash,
+          currentUser.phoneNumber,
+          currentUser.name,
+          currentUser.dateOfBirth,
+          currentUser.role,
+          currentUser.image);
+
+      if (result.status === 200) {
+        console.log(result)
+        fetchUsers();
+        setSnackbar({
+          open: true,
+          message: isEditMode
+            ? "User updated successfully."
+            : "User added successfully.",
+          type: "success",
+        });
+        handleCloseModal();
       }
+      console.log(result)
     } catch (error) {
-      setSnackbarMessage(
-        isEditMode ? "Error Update User!!" : "Error Add User!!"
-      );
-      setSnackbarType("error");
-    } finally {
-      setSnackbarOpen(true);
+      // More detailed error handling
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || "An error occurred!",
+        type: "error",
+      });
     }
   };
 
-  const handleCloseSnackbar = () => {
-    setSnackbarOpen(false);
-  };
 
   const handleDelete = async () => {
     try {
-      const result = await deleteUserById(userToDelete);
-      if (result !== undefined) {
+      const result = await deleteUserById(dialog.userId);
+      if (result) {
         fetchUsers();
         handleCloseDialog();
-        setSnackbarMessage(`User ${userToDelete} deleted successfully.`);
-        setSnackbarType("success");
-        setSnackbarOpen(true);
+        setSnackbar({
+          open: true,
+          message: `User ${dialog.userId} deleted successfully.`,
+          type: "success",
+        });
       }
     } catch (error) {
-      setSnackbarMessage("Error Delete User!!!");
-      setSnackbarType("error");
-    } finally {
-      setSnackbarOpen(true);
+      setSnackbar({
+        open: true,
+        message: "Error deleting user!",
+        type: "error",
+      });
     }
   };
 
+  const handleCloseDialog = () => {
+    setDialog({ open: false, userId: null });
+  };
+
+  const handleOpenDialog = (userId) => {
+    setDialog({ open: true, userId }); // Open dialog with userId
+  };
+
   return (
-    <Box style={{ height: "94vh", padding: 0 }}>
+    <Box sx={{ height: "auto", padding: 2 }}>
       <Box
-        style={{
-          padding: 24,
-          // margin: "24px auto",
+        sx={{
+          padding: 2,
           background: "rgba(255, 255, 255, 0.8)",
-          borderRadius: "8px",
+          borderRadius: 2,
         }}
       >
-        <SnackbarSuccess
-          open={snackbarOpen && snackbarType === "success"}
-          message={snackbarMessage}
-          handleClose={handleCloseSnackbar}
+        <SnackBar
+          open={snackbar.open}
+          type={snackbar.type}
+          message={snackbar.message}
+          handleClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
         />
 
-        <SnackbarError
-          open={snackbarOpen && snackbarType === "error"}
-          message={snackbarMessage}
-          handleClose={handleCloseSnackbar}
-        />
-
-        <Typography variant="h4" align="center" gutterBottom>
-          Manage Users
-        </Typography>
-
-        <FlexBetween>
-          <Button
-            variant="contained"
-            onClick={() => handleOpenModal()}
-            sx={{
-              mb: 1,
-              color: "black",
-              backgroundColor: "#2ECBFF",
-              fontWeight: "bold",
-              borderRadius: "99px",
-            }}
+        <FlexBetween
+          sx={{
+            mb: "10px"
+          }}
+        >
+          <Typography variant="h4" gutterBottom
+            sx={{ m: "auto 0" }}
           >
-            Add User
-          </Button>
+            Manage Users
+          </Typography>
           <Box
-            display="flex"
-            width="20%"
-            border="1px solid black"
-            borderRadius="30px"
-          >
-            <InputBase
-              sx={{ ml: 2, flex: 1 }}
-              onChange={(e) => {
-                setInputSearch(e.target.value);
-                setCurrentPage(1);
+            sx={{
+              display: "inline-flex",
+              gap: "10px"
+            }}>
+            <Button
+              variant="contained"
+              onClick={() => handleOpenModal()}
+              sx={{
+                color: "black",
+                backgroundColor: "inherit",
+                border: "1px solid black",
+                boxShadow: "none",
+                fontWeight: "bold",
+                borderRadius: "5px",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                "&:hover": {
+                  backgroundColor: "#535C91",
+                  color: "#ddd",
+                },
               }}
             />
-            <IconButton type="button" sx={{ p: 1 }}>
+            <IconButton sx={{ p: 1 }}>
               <SearchOutlined />
             </IconButton>
           </Box>
@@ -286,83 +313,85 @@ const Users = () => {
 
         <TableContainer component={Paper}>
           <Table size="small" aria-label="a dense table">
-            <TableHead>
+            <TableHead sx={{ height: "46px" }}>
               <TableRow>
-                <GreenTableCell>Id</GreenTableCell>
-                <GreenTableCell>Name</GreenTableCell>
-                <GreenTableCell>User Name</GreenTableCell>
-                <GreenTableCell>Email</GreenTableCell>
-                <GreenTableCell>Phone Number</GreenTableCell>
-                {/* <GreenTableCell>Date Of Number</GreenTableCell> */}
-                <GreenTableCell>Roles</GreenTableCell>
-                <GreenTableCell>Actions</GreenTableCell>
+                <TitleTableCell>Id</TitleTableCell>
+                <TitleTableCell>Name</TitleTableCell>
+                <TitleTableCell>User Name</TitleTableCell>
+                <TitleTableCell>Email</TitleTableCell>
+                <TitleTableCell>Phone Number</TitleTableCell>
+                {/* <TitleTableCell>Date Of Number</TitleTableCell> */}
+                <TitleTableCell>Roles</TitleTableCell>
+                <TitleTableCell>Actions</TitleTableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {data.users.length > 0 ? (
-                data.users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        fontSize: "12px",
-                      }}
-                    >
+                data.users.map((user, index) => (
+                  <TableRow key={user.id} // Ensure this key is unique
+                    sx={{
+                      backgroundColor: index % 2 === 0 ? '#eee' : '#fff',
+                      '&:hover': {
+                        backgroundColor: '#f1f1f1',
+                      },
+                    }}
+                  >
+                    <ItemTableCell sx={{ fontWeight: "bold" }}>
                       {user.id}
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", fontSize: "12px" }}>
+                    </ItemTableCell>
+                    <ItemTableCell sx={{ fontWeight: "bold" }}>
                       {user.name}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "12px" }}>
+                    </ItemTableCell>
+                    <ItemTableCell>
                       {user.userName}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "12px" }}>
+                    </ItemTableCell>
+                    <ItemTableCell>
                       {user.email}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "12px" }}>
+                    </ItemTableCell>
+                    <ItemTableCell>
                       {user.phoneNumber}
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: "bold", fontSize: "12px" }}>
-                      {user.roles.map((role) => role).join(", ")}
-                    </TableCell>
-                    <TableCell>
+                    </ItemTableCell>
+                    <ItemTableCell sx={{ fontWeight: "bold" }}>
+                      {user.roles.join(", ")}
+                    </ItemTableCell>
+                    <ItemTableCell>
                       <UserActionsMenu
-                        handleOpenDialog={handleOpenDialog}
-                        handleOpenModal={handleOpenModal}
+                        onEdit={handleOpenModal}
+                        onDelete={handleOpenDialog}
                         user={user}
                       />
-                    </TableCell>
+                    </ItemTableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={10} align="center">
+                  <ItemTableCell colSpan={10} align="center">
                     No users available.
-                  </TableCell>
+                  </ItemTableCell>
                 </TableRow>
               )}
             </TableBody>
+
             <TableFooter>
               <TableRow>
                 <TablePagination
                   rowsPerPageOptions={[5, 10, 25]}
-                  colSpan={10}
-                  count={data.totalPage * rowsPerPage}
-                  page={currentPage - 1}
-                  rowsPerPage={rowsPerPage}
-                  onPageChange={(event, newPage) => {
-                    setCurrentPage(newPage + 1); // Convert back to one-based index
+                  count={data.totalPage * pagination.rowsPerPage}
+                  rowsPerPage={pagination.rowsPerPage}
+                  page={pagination.currentPage - 1}
+                  onPageChange={(e, newPage) => {
+                    setPagination((prev) => ({
+                      ...prev,
+                      currentPage: newPage + 1,
+                    }));
                   }}
-                  onRowsPerPageChange={(event) => {
-                    setRowsPerPage(parseInt(event.target.value, 10));
-                    setCurrentPage(1);
+                  onRowsPerPageChange={(e) => {
+                    setPagination((prev) => ({
+                      ...prev,
+                      rowsPerPage: parseInt(e.target.value, 10),
+                      currentPage: 1,
+                    }));
                   }}
-                  labelRowsPerPage="Rows per page"
-                  labelDisplayedRows={({ from, to, count }) =>
-                    `${from}-${to} of ${
-                      count !== -1 ? count : `more than ${to}`
-                    }`
-                  }
                 />
               </TableRow>
             </TableFooter>
@@ -372,43 +401,47 @@ const Users = () => {
         <UsersModal
           isModalVisible={isModalVisible}
           handleCloseModal={handleCloseModal}
-          isEditMode={isEditMode}
-          currentUser={currentUser}
-          handleSaveCustomer={handleSaveCustomer}
+          handleSaveUser={handleSaveUser}
           handleChange={handleChange}
+          currentUser={currentUser}
+          isEditMode={isEditMode}
         />
 
-        <Dialog
-          open={openDialog}
-          onClose={handleCloseDialog}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-        >
-          <DialogTitle id="alert-dialog-title">{"Confirm Delete"}</DialogTitle>
+        <Dialog open={dialog.open} onClose={handleCloseDialog}>
+          <DialogTitle>Delete User</DialogTitle>
           <DialogContent>
-            <DialogContentText id="alert-dialog-description">
-              Are you sure you want to delete this user?
+            <DialogContentText>
+              Are you sure you want to delete user with id: {dialog.userId}?
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button
-              onClick={handleDelete}
-              color="secondary"
-              autoFocus
-              variant="contained"
-            >
-              Delete
-            </Button>
-            <Button
-              onClick={handleCloseDialog}
-              color="primary"
-              variant="contained"
-            >
-              Cancel
-            </Button>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button onClick={handleDelete}>Confirm</Button>
           </DialogActions>
         </Dialog>
       </Box>
+
+      <UsersModal
+        isModalVisible={isModalVisible}
+        handleCloseModal={handleCloseModal}
+        handleSaveUser={handleSaveUser}
+        handleChange={handleChange}
+        currentUser={currentUser}
+        isEditMode={isEditMode}
+      />
+
+      <Dialog open={dialog.open} onClose={handleCloseDialog}>
+        <DialogTitle>Delete User</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete user with id: {dialog.userId}?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleDelete}>Confirm</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

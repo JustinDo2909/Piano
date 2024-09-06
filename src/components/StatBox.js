@@ -12,29 +12,29 @@ const StatBox = ({ icon, title, value }) => {
       flex="1 1 100%"
       backgroundColor="white"
       flexDirection="column"
+      justifyContent="space-between"
+      overflow="hidden"
+      boxShadow=" -1px 1px 5px #89a"
       component={Paper}
     >
       <Box
         style={{
-          borderRadius: "1rem 0 30px 0",
           height: "0.75rem",
-          width: "80%",
-          backgroundColor: "#9290C3",
+          width: "100%",
+          backgroundColor: '#83e',
         }}
       />
 
-      <FlexBetween sx={{ p: "1rem" }}>
+      <FlexBetween sx={{ p: "0.75rem" }}>
         <Box>
-          <Typography variant="h4" fontWeight="bold" sx={{ color: "#1B1A55" }}>
+          <Typography fontSize="22px" fontWeight="bold" sx={{ color: "#83e", }}>
             {value}
           </Typography>
-          <Typography style={{ fontSize: "16px", color: "#333333" }}>
+          <Typography style={{ fontSize: "14px", color: "#678" }}>
             {title}
           </Typography>
         </Box>
-        <Box
-          style={{ fontSize: "3em", height: "100%", color: "#535C91" }}
-        ></Box>
+        <Box> {icon}</Box>
       </FlexBetween>
     </Box>
   );

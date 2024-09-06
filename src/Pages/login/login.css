@@ -39,7 +39,6 @@ p {
 
 span {
     font-size: 14px;
-    margin-top: 25px;
 }
 
 a {
@@ -155,8 +154,9 @@ input {
     border-radius: 10px;
     border: none;
     padding: 12px 15px;
-    margin: 8px 0;
+    margin: 5px 0;
     width: 100%;
+    height: 35px;
 }
 
 .container {
@@ -165,9 +165,9 @@ input {
     box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
     position: relative;
     overflow: hidden;
-    width: 879px;
+    width: 986px;
     max-width: 100%;
-    min-height: 550px;
+    min-height: 600px;
 }
 
 .form {

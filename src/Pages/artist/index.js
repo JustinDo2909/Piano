@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Button,
   Typography,
@@ -8,275 +8,504 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Modal,
-  TextField,
-  Snackbar,
   IconButton,
   Paper,
   Box,
-  Menu,
-  MenuItem,
-  CardMedia,
+  Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  InputBase,
+  TableFooter,
+  TablePagination,
 } from "@mui/material";
-import { Add, Close, MoreVert } from "@mui/icons-material";
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import data from "../../Data/Artist.json";
-import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
+import { SnackBar } from "../../components/Snackbar";
+import {
+  SearchOutlined,
+  KeyboardArrowDown,
+  KeyboardArrowUp,
+  PersonAdd
+} from "@mui/icons-material";
+import {
+  AddSong,
+  addSong,
+  deleteSongById,
+  getAllArtist,
+  getGenre,
+  UpdateSong,
+  updateSong,
+} from "../../util/ApiFunction";
+import useDebounce from "../../util/Debounce";
+import SongDialog from "./SongDialog";
+import FlexBetween from "../../components/FlexBetween";
+
+const { styled } = require("@mui/system");
+
+const TitleTableCell = styled(TableCell)`
+  color: #535C91;
+  font-size: 18px;
+`;
+
+const ItemTableCell = styled(TableCell)`
+  padding: 8px 16px
+`;
 
 const Artist = () => {
-  const [artists, setArtists] = useState(data);
-  const [selectedArtist, setSelectedArtist] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [anchorEl, setAnchorEl] = useState(null);
-  const navigate = useNavigate('');
-  const open = Boolean(anchorEl);
+  const [snackbarType, setSnackbarType] = useState("");
+  const [data, setData] = useState({
+    artists: [],
+    totalPage: 0,
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [inputSearch, setInputSearch] = useState("");
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [openRow, setOpenRow] = useState(null);
+  const [isSongDialogOpen, setIsSongDialogOpen] = useState(false);
+  const [selectedSong, setSelectedSong] = useState(null);
+  const [songToDelete, setSongToDelete] = useState(null);
+  const [genres, setGenres] = useState([]);
 
-  const GreenTableCell = styled(TableCell)`
-  color: green;
-  font-size: 16px;
-`;
-const CustomTableCell = ({ children, ...props }) => (
-  <TableCell
-    sx={{
-      padding: "10px 4px", // Reduce padding to make cells smaller
-      fontSize: "0.1rem", // Optional: Reduce font size for smaller appearance
-      whiteSpace: "nowrap", // Prevent text from wrapping
-      overflow: "hidden", // Hide overflow text
-      textOverflow: "ellipsis", // Add ellipsis for overflow text
-      rowGap: 0
-    }}
-    {...props}
-  >
-    {children}
-  </TableCell>
-);
+  const inputSearchDebounced = useDebounce(inputSearch, 300);
 
-
-  const handleAddArtist = () => {
-    setSelectedArtist(null);
-    setIsModalOpen(true);
-  };
-
-  const handleEditArtist = (artist) => {
-    setAnchorEl(null);
-    setSelectedArtist(artist);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleSaveArtist = (event) => {
-    event.preventDefault();
-    const form = new FormData(event.target);
-
-    const newArtist = {
-      idArtist: form.get("idArtist"),
-      nameArtist: form.get("nameArtist"),
-      rating: parseFloat(form.get("rating")),
-      createdate: form.get("createdate"),
-      total_music: JSON.parse(form.get("total_music")),
-    };
-
-    if (selectedArtist) {
-      setArtists(
-        artists.map((artist) =>
-          artist.idArtist === selectedArtist.idArtist ? newArtist : artist
-        )
-      );
-    } else {
-      setArtists([...artists, newArtist]);
+  const fetchGenres = async () => {
+    try {
+      const result = await getGenre();
+      if (result && result.data) {
+        setGenres(result.data);
+      }
+    } catch (error) {
+      setSnackbarMessage(error.message);
+      setSnackbarType("error");
     }
+  };
 
-    setIsModalOpen(false);
-    setSnackbarMessage("Artist saved successfully");
+  useEffect(() => {
+    fetchGenres();
+  }, []);
+
+  const fetchArtists = useCallback(async () => {
+    try {
+      const result = await getAllArtist(
+        currentPage,
+        rowsPerPage,
+        inputSearchDebounced
+      );
+      if (result !== undefined) {
+        setData({
+          artists: result.data.songResponseByArtists,
+          totalPage: result.data.totalPage,
+        });
+      }
+    } catch (error) {
+      setSnackbarMessage(error.message);
+      setSnackbarType("error");
+    }
+  }, [currentPage, rowsPerPage, inputSearchDebounced]);
+
+  useEffect(() => {
+    fetchArtists();
+  }, [fetchArtists]);
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+  };
+
+  const handleRowClick = (id) => {
+    setOpenRow(openRow === id ? null : id); // Toggle the row open/close
+  };
+
+  const handleOpenSongDialog = (song = null) => {
+    setIsEditMode(!!song);
+    setSelectedSong(
+      song
+        ? {
+          ...song,
+        }
+        : {
+          id: "",
+          title: "",
+          composer: "",
+          genreId: "",
+          artistId: "",
+          image: "",
+        }
+    );
+    setIsSongDialogOpen(true);
+  };
+
+  const handleCloseSongDialog = () => {
+    setIsSongDialogOpen(false);
+    setSelectedSong(null);
+  };
+
+  const handleConfirmSong = async (event) => {
+    event.preventDefault();
+    try {
+      if (isEditMode) {
+        console.log(selectedSong);
+        const result = await UpdateSong(
+          selectedSong.id,
+          selectedSong.title,
+          selectedSong.composer,
+          selectedSong.genreId,
+          selectedSong.artistId,
+          selectedSong.image
+        );
+        if (result) {
+          setSnackbarMessage("Song updated successfully");
+          setSnackbarType("success");
+          fetchArtists();
+          handleCloseSongDialog();
+        } 
+      } else {
+        console.log(selectedSong);
+        const result = await AddSong(
+          selectedSong.title,
+          selectedSong.composer,
+          selectedSong.genreId,
+          selectedSong.artistId,
+          selectedSong.image
+        );
+        if (result) {
+          setSnackbarMessage("Song added successfully");
+          setSnackbarType("success");
+          fetchArtists();
+          handleCloseSongDialog();
+        }
+      }
+    } catch (error) {
+      setSnackbarMessage(error.message);
+      setSnackbarType("error");
+    }
     setSnackbarOpen(true);
   };
+  
 
-  const handleDeleteArtist = (id) => {
-    setAnchorEl(null);
-    setArtists(artists.filter((artist) => artist.idArtist !== id));
-
-  };
-
-  const handleClick = (event, artist) => {
-    setSelectedArtist(artist);
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-    setSelectedArtist(null);
-  };
-
-  const handleClickDetail = (artist) => {
-    navigate(`${artist.idArtist}`, {
-      state: {
-        ...selectedArtist
+  const handleDelete = async () => {
+    try {
+      const result = await deleteSongById(songToDelete);
+      if (result !== undefined) {
+        fetchArtists();
+        handleCloseDeleteDialog();
+        setSnackbarMessage(`Delete ${songToDelete} deleted successfully.`);
+        setSnackbarType("success");
       }
-    })
+    } catch (error) {
+      setSnackbarMessage("Error Delete User!!!");
+      setSnackbarType("error");
+    } finally {
+      setSnackbarOpen(true);
+    }
+  };
 
+  const handleOpenDeleteDialog = (song) => {
+    setSongToDelete(song.id);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false);
+    setSongToDelete(null);
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setSelectedSong((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
   };
 
   return (
-    <div style={{ minHeight: "92vh", backgroundSize: "cover", padding: 0 }}>
-      <main style={{ padding: 24, margin: "24px auto", background: "rgba(255, 255, 255, 0.9)", borderRadius: "8px", maxWidth: 1200 }}>
-        <Typography variant="h5" align="center" gutterBottom>
-          Manage Artist
-        </Typography>
+    <Box sx={{ height: "auto", padding: 0 }}>
+      <Box
+        sx={{
+          margin: 2,
+          padding: 2,
+          background: "rgba(255, 255, 255, 0.8)",
+          borderRadius: "5px",
+        }}
+      >
+        <SnackBar
+          open={snackbarOpen}
+          type={snackbarType}
+          message={snackbarMessage}
+          handleClose={handleCloseSnackbar}
+        />
 
-        <Button
-          variant="contained"
-
-          startIcon={<Add />}
-          onClick={handleAddArtist}
-          sx={{ mb: 2, color: 'black', backgroundColor: '#2ECBFF', fontWeight: 'bold' }}
-        >
-          New Artist
-        </Button>
+        <FlexBetween
+          sx={{
+            mb: "10px"
+          }}>
+          <Typography variant="h4" align="center" gutterBottom
+            sx={{ m: "auto 0" }}>
+            Manage Artist
+          </Typography>
+          <Box
+            sx={{
+              display: "inline-flex",
+              gap: "10px"
+            }}>
+            <Button
+              variant="contained"
+              onClick={() => handleOpenSongDialog()}
+              sx={{
+                color: "black",
+                backgroundColor: "inherit",
+                border: "1px solid black",
+                boxShadow: "none",
+                fontWeight: "bold",
+                borderRadius: "5px",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                "&:hover": {
+                  backgroundColor: "#535C91",
+                  color: "#ddd",
+                },
+              }}
+            >
+              Add Song
+              <PersonAdd />
+            </Button>
+            <Box
+              display="flex"
+              border="1px solid black"
+              borderRadius="5px"
+            >
+              <InputBase
+                sx={{ ml: 2, flex: 1 }}
+                onChange={(e) => {
+                  setInputSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
+              <IconButton type="button" sx={{ p: 1 }}>
+                <SearchOutlined />
+              </IconButton>
+            </Box>
+          </Box>
+        </FlexBetween>
 
         <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
+          <Table size="small" aria-label="a dense table">
+            <TableHead sx={{ height: "46px" }}>
               <TableRow>
-                <GreenTableCell>Avatar</GreenTableCell>
-                <GreenTableCell>Name</GreenTableCell>
-                <GreenTableCell>Songs</GreenTableCell>
-                <GreenTableCell>Actions</GreenTableCell>
+                <TitleTableCell sx={{ width: "5%" }} />
+                <TitleTableCell align="center">Id</TitleTableCell>
+                <TitleTableCell align="center">Name</TitleTableCell>
+                <TitleTableCell align="center">Date of Birth</TitleTableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {artists.map((artist) => (
-                <TableRow key={artist.idArtist}>
-                  <CustomTableCell>
-                    <CardMedia
-                      component="img"
-                      image={artist.avarta}
-                      alt={artist.nameArtist}
-                      style={{ width: '80px', height: '80px', objectFit: 'cover' }}
-                    />
-                  </CustomTableCell>
-                  <CustomTableCell sx={{ fontWeight: 'bold', fontSize: '17px' }}>{artist.nameArtist}</CustomTableCell>
-                  <CustomTableCell sx={{ fontSize: '15px' }}>{artist.total_music.length} songs</CustomTableCell>
-                  <CustomTableCell sx={{ fontSize: '20px' }}>
-                    <Typography
-                      fontWeight="600"
-                      fontSize="20px"
-                      onClick={(event) => handleClick(event, artist)}
-                      sx={{ cursor: 'pointer' }}
+              {data.artists.length > 0 ? (
+                data.artists.map((artist, index) => (
+                  <React.Fragment key={artist.id}>
+                    <TableRow
+                      onClick={() => handleRowClick(artist.id)}
+                      sx={{
+                        cursor: "pointer",
+                        backgroundColor: index % 2 === 0 ? '#eee' : '#fff',
+                        '&:hover': {
+                          backgroundColor: '#f1f1f1',
+                        },
+                      }}
                     >
-                      <MoreVert />
-                    </Typography>
-                    <Menu
-                      anchorEl={anchorEl}
-                      open={Boolean(anchorEl) && selectedArtist?.idArtist === artist.idArtist}
-                      onClose={handleClose}
-                    >
-                      <MenuItem onClick={() => handleClickDetail(artist)}>Detail</MenuItem>
-                      <MenuItem onClick={() => handleEditArtist(artist)}>Edit</MenuItem>
-                      <MenuItem onClick={() => handleDeleteArtist(artist.idArtist)}>Delete</MenuItem>
-                    </Menu>
-                  </CustomTableCell>
+                      <TableCell align="center">
+                        {openRow === artist.id ? (
+                          <KeyboardArrowUp />
+                        ) : (
+                          <KeyboardArrowDown />
+                        )}
+                        {/* </IconButton> */}
+                      </TableCell>
+                      <TableCell align="center" sx={{ fontSize: "12px", fontWeight: "bold" }}>{artist.id}</TableCell>
+                      <TableCell align="center" sx={{ fontSize: "12px" }}>{artist.name}</TableCell>
+                      <TableCell align="center" sx={{ fontSize: "12px" }}>{artist.dateOfBirth}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell colSpan={14} sx={{ padding: 0 }}>
+                        <Collapse
+                          in={openRow === artist.id}
+                          timeout="auto"
+                          unmountOnExit
+                        >
+                          <Box sx={{ m: "0.5rem" }}>
+                            <Typography
+                              variant="h6"
+                              component="div"
+                            >
+                              Songs
+                            </Typography>
+                            <Table aria-label="songs">
+                              <TableHead>
+                                <TableRow>
+                                  <TitleTableCell>Id</TitleTableCell>
+                                  <TitleTableCell>Title</TitleTableCell>
+                                  <TitleTableCell>Composer</TitleTableCell>
+                                  <TitleTableCell>Genres</TitleTableCell>
+                                  <TitleTableCell>Created Time</TitleTableCell>
+                                  <TitleTableCell>Sheets</TitleTableCell>
+                                  <TitleTableCell align="center">
+                                    Actions
+                                  </TitleTableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {artist.songs.length > 0 ? (
+                                  artist.songs.map((song) => (
+                                    <TableRow key={song.id}>
+                                      <ItemTableCell>{song.id}</ItemTableCell>
+                                      <ItemTableCell>{song.title}</ItemTableCell>
+                                      <ItemTableCell>{song.composer}</ItemTableCell>
+                                      <ItemTableCell>{song.genres}</ItemTableCell>
+                                      <ItemTableCell>{song.createdTime}</ItemTableCell>
+                                      <ItemTableCell>
+                                        {/* {song.createdTime} */}
+                                      </ItemTableCell>
+                                      <ItemTableCell align="center">
+                                        <Button
+                                          variant="outlined"
+                                          color="primary"
+                                          onClick={() =>
+                                            handleOpenSongDialog({
+                                              ...song,
+                                              artistId: artist.id,
+                                            })
+                                          }
+                                        >
+                                          Edit
+                                        </Button>
+                                        <Button
+                                          variant="outlined"
+                                          color="error"
+                                          onClick={() =>
+                                            handleOpenDeleteDialog(song)
+                                          }
+                                          sx={{ ml: 1 }}
+                                        >
+                                          Delete
+                                        </Button>
+                                      </ItemTableCell>
+                                    </TableRow>
+                                  ))
+                                ) : (
+                                  <TableRow>
+                                    <ItemTableCell colSpan={10} align="center">
+                                      No Songs available.
+                                    </ItemTableCell>
+                                  </TableRow>
+                                )}
+                              </TableBody>
+                            </Table>
+                          </Box>
+                        </Collapse>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={10} align="center">
+                    No users available.
+                  </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25]}
+                  colSpan={10}
+                  count={data.totalPage * rowsPerPage}
+                  page={currentPage - 1}
+                  rowsPerPage={rowsPerPage}
+                  onPageChange={(event, newPage) => {
+                    setCurrentPage(newPage + 1); // Convert back to one-based index
+                  }}
+                  onRowsPerPageChange={(event) => {
+                    setRowsPerPage(parseInt(event.target.value, 10));
+                    setCurrentPage(1);
+                  }}
+                  labelRowsPerPage="Rows per page"
+                  labelDisplayedRows={({ from, to, count }) =>
+                    `${from}-${to} of ${count !== -1 ? count : `more than ${to}`
+                    }`
+                  }
+                />
+              </TableRow>
+            </TableFooter>
           </Table>
         </TableContainer>
 
-        <Modal open={isModalOpen} onClose={handleCloseModal}>
-          <Box
+        <SongDialog
+          open={isSongDialogOpen}
+          handleClose={handleCloseSongDialog}
+          song={selectedSong}
+          handleConfirmSong={handleConfirmSong}
+          isEditMode={isEditMode}
+          handleChange={handleChange}
+          artists={data.artists}
+          genres={genres}
+        />
+
+        <Dialog
+          open={openDeleteDialog}
+          onClose={handleCloseDeleteDialog}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title"
             sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "80%",
-              maxWidth: 600,
-              bgcolor: "background.paper",
-              borderRadius: 2,
-              boxShadow: 24,
-              p: 4,
-            }}
-          >
-            <Typography variant="h6" gutterBottom>
-              {selectedArtist ? "Edit Artist" : "Add New Artist"}
-            </Typography>
-            <form onSubmit={handleSaveArtist}>
-              <Box sx={{ mb: 2 }}>
-                <TextField
-                  label="Artist ID"
-                  name="idArtist"
-                  defaultValue={selectedArtist ? selectedArtist.idArtist : ""}
-                  required
-                  fullWidth
-                  disabled={!!selectedArtist}
-                />
-              </Box>
-              <Box sx={{ mb: 2 }}>
-                <TextField
-                  label="Artist Name"
-                  name="nameArtist"
-                  defaultValue={selectedArtist ? selectedArtist.nameArtist : ""}
-                  required
-                  fullWidth
-                />
-              </Box>
-              <Box sx={{ mb: 2 }}>
-                <TextField
-                  label="Rating"
-                  name="rating"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="5"
-                  defaultValue={selectedArtist ? selectedArtist.rating : ""}
-                  required
-                  fullWidth
-                />
-              </Box>
-              <Box sx={{ mb: 2 }}>
-                <TextField
-                  label="Created Date"
-                  name="createdate"
-                  type="date"
-                  defaultValue={selectedArtist ? selectedArtist.createdate : ""}
-                  required
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Box>
-              <Box sx={{ mb: 2 }}>
-                <TextField
-                  label="Total Music"
-                  name="total_music"
-                  defaultValue={
-                    selectedArtist
-                      ? JSON.stringify(selectedArtist.total_music)
-                      : "[]"
-                  }
-                  required
-                  fullWidth
-                  multiline
-                  rows={4}
-                />
-              </Box>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                fullWidth
-              >
-                Save Artist
-              </Button>
-            </form>
-          </Box>
-        </Modal>
-      </main>
-    </div>
+              font: "18px Roboto",
+              width: "500px",
+              fontWeight: "bold",
+            }}>
+            Are you sure?
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Do you really want to delete this song?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={handleDelete}
+              autoFocus
+              variant="contained"
+              sx={{
+                bgcolor: "#d00",
+                "&:hover": {
+                  bgcolor: "#b11"
+                }
+              }}
+            >
+              Delete
+            </Button>
+            <Button
+              onClick={handleCloseDeleteDialog}
+              variant="contained"
+              sx={{
+                border: "1px solid black",
+                bgcolor: "inherit",
+                color: "#333",
+                "&:hover": {
+                  bgcolor: "#eee",
+                }
+              }}
+            >
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    </Box>
   );
 };
 

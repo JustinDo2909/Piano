@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Menu as MenuIcon,
   SettingsOutlined,
@@ -19,16 +19,19 @@ import { useNavigate } from "react-router-dom";
 import logo from "../../image/logo-white.png";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../Redux/reducers/authSlice";
+import { getMyInfo } from "../../util/ApiFunction";
 
 const Navbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const isOpen = Boolean(anchorEl);
   const handleClick = (event) => setAnchorEl(event.currentTarget);
-  const handleClose = () => setAnchorEl(null);  
-  const user = useSelector((state) => state.authUser.authUser);
-  const { name, token } = user;
+  const handleClose = () => setAnchorEl(null);
+  const user = useSelector((state) => state.authUser.authUser)
   const dispatch = useDispatch();
+  const [avatar , setAvarta] = useState('');
+  const [name , setName] = useState('');
+
 
   const handleLogout = () => {
     setAnchorEl(null);
@@ -42,16 +45,38 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     }
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getMyInfo();
+        if (data) {
+          setAvarta(data.data.image)
+          setName(data.data.name)
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
+    };
+    fetchData();
+  }, [dispatch]);
+
+
   return (
     <AppBar
       sx={{
-        position: "static",
+        position: "fixed",
         boxShadow: "none",
         backgroundColor: "#001529",
-        minHeight: "6vh",
+        minHeight: "64px",
+        width: isSidebarOpen ? "calc(100% - 200px)" : "100%",
+        transition: "width 0.3s ease",
       }}
     >
-      <Toolbar sx={{ justifyContent: "space-between" }}>
+      <Toolbar
+        sx={{
+          justifyContent: "space-between",
+
+        }}>
         {/* LEFT SIDE */}
         <FlexBetween>
           <IconButton onClick={() => {
@@ -61,7 +86,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
             <MenuIcon sx={{ color: "#fff" }} />
           </IconButton>
           <img
-            onClick={() => navigate("/Home")}
+            onClick={() => navigate("/home")}
             src={logo}
             alt="Logo"
             style={{
@@ -74,13 +99,25 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
         {/* RIGHT SIDE */}
         <FlexBetween gap="1.5rem">
-          <IconButton>
-            <SettingsOutlined sx={{ fontSize: "25px", color: "#fff" }} />
-          </IconButton>
-         
+          <Typography
+            sx={{
+              fontSize: "12px",
+              maxWidth: "200px",
+              textOverflow: "ellipsis",
+              userSelect: "none"
+            }}>
+            {name}
+          </Typography>
+
           <Button
             onClick={handleClick}
-            startIcon={<Avatar sx={{ height: "30px", width: "30px" }} />}
+            startIcon={<Avatar src={avatar} sx={{ height: "30px", width: "30px" }} />}
+            sx={{
+              '& .MuiButton-startIcon': {
+                marginRight: 0,
+                marginLeft: 0,
+              },
+            }}
           />
           <Menu
             anchorEl={anchorEl}

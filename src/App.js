@@ -5,7 +5,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 import LayOut from "./Pages/layout/Layout";
 import Detail from "./Pages/detail";
 import MusicTypeDetail from "./Pages/musicTypeDetail";
-import ProtectedRoute from "../src/PrivateRouter/PrivateRouter";
+import PrivateRouter from "../src/PrivateRouter/PrivateRouter";
 import NotFound from "../src/PrivateRouter/NotFound";
 
 const Home = lazy(() => import("./Pages/dashboard"));
@@ -15,9 +15,10 @@ const Profile = lazy(() => import("./Pages/profile"));
 const TypeMusic = lazy(() => import("./Pages/typeofmusic"));
 const Compose = lazy(() => import("./Pages/compose"));
 const Sheet = lazy(()=> import("./Pages/sheet"))
+const SheetArtist = lazy(() => import("./Pages/sheetArtist"))
 const MyAlbum = lazy(() => import("./Pages/album"));
+const Instruments = lazy(() => import("./Pages/instrument"));
 const Login = lazy(() => import("./Pages/login"));
-const LoginAdmin = lazy(() => import("./Pages/login/admin"));
 
 const Loading = () => (
   <div
@@ -43,7 +44,7 @@ function App() {
               path="Home"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={Home} requiredRole={"Admin"}/>
+                  <PrivateRouter element={Home} />
                 </Suspense>
               }
             />
@@ -51,7 +52,7 @@ function App() {
               path="Profile"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={Profile} />
+                  <PrivateRouter element={Profile} />
                 </Suspense>
               }
             />
@@ -59,7 +60,7 @@ function App() {
               path="Users"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={Users} />
+                  <PrivateRouter element={Users} />
                 </Suspense>
               }
             />
@@ -67,15 +68,7 @@ function App() {
               path="Artist"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={Artist}requiredRole={"Admin"} />
-                </Suspense>
-              }
-            />
-            <Route
-              path="Artist/:id"
-              element={
-                <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={Detail} />
+                  <PrivateRouter element={Artist} />
                 </Suspense>
               }
             />
@@ -83,7 +76,7 @@ function App() {
               path="MyAlbum"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={MyAlbum} requiredRole={"Artist"} />
+                  <PrivateRouter element={MyAlbum} />
                 </Suspense>
               }
             />
@@ -91,7 +84,7 @@ function App() {
               path="TypeOfMusic"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={TypeMusic}requiredRole={"Artist"} />
+                  <PrivateRouter element={TypeMusic} />
                 </Suspense>
               }
             />
@@ -99,7 +92,15 @@ function App() {
               path="TypeOfMusic/:id"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={MusicTypeDetail} />
+                  <PrivateRouter element={MusicTypeDetail} />
+                </Suspense>
+              }
+            />
+            <Route
+              path="instrument"
+              element={
+                <Suspense fallback={<Loading />}>
+                  <PrivateRouter element={Instruments} />
                 </Suspense>
               }
             />
@@ -107,7 +108,7 @@ function App() {
               path="Compose"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={Compose} requiredRole={"Artist"}/>
+                  <PrivateRouter element={Compose} />
                 </Suspense>
               }
             />
@@ -115,7 +116,15 @@ function App() {
               path="Sheet"
               element={
                 <Suspense fallback={<Loading />}>
-                  <ProtectedRoute element={Sheet} requiredRole={"Artist"}/>
+                  <PrivateRouter element={Sheet} requiredRole={"Artist"}/>
+                </Suspense>
+              }
+            />
+          <Route
+              path="SheetArtist"
+              element={
+                <Suspense fallback={<Loading />}>
+                  <PrivateRouter element={SheetArtist} requiredRole={"Artist"}/>
                 </Suspense>
               }
             />
@@ -126,14 +135,6 @@ function App() {
             element={
               <Suspense fallback={<Loading />}>
                 <Login />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/Login/Admin"
-            element={
-              <Suspense fallback={<Loading />}>
-                <LoginAdmin />
               </Suspense>
             }
           />

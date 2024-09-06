@@ -3,14 +3,25 @@ import { Box, useMediaQuery } from "@mui/material";
 import { Outlet } from "react-router-dom";
 import Navbar from "../global/Navbar";
 import Sidebar from "../global/Sidebar";
-import { height } from "@mui/system";
 
 const Layout = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const navbarHeight = 64;
 
   return (
-    <Box display={isNonMobile ? "flex" : "block"} width="100%" height="100vh">
+    <Box
+      display={isNonMobile ? "flex" : "block"}
+      width="100%"
+      height="auto"
+      p="0px"
+      bgcolor="#ddd"
+      boxSizing="border-box"
+      sx={{
+        overflowX: "hidden",
+        overflowY: "scroll"
+      }}
+    >
       <Sidebar
         isNonMobile={isNonMobile}
         drawerWidth="200px"
@@ -20,9 +31,7 @@ const Layout = () => {
       <Box
         flexGrow={1}
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          minHeight: "100vh",
+          paddingTop: `${navbarHeight}px`,
         }}
       >
         <Navbar

@@ -1,29 +1,28 @@
-import React, { useRef, useEffect, useState } from "react";
-import abcjs from "abcjs";
+import React, { useEffect, useState } from "react";
 
-const parseNoteFormat = (note, duration) => {
+const parseNoteFormat = (note1, note2, note3, duration) => {
   const noteMapping = {
     "C,,,": "C1",
-    "C,,,": "D1",
-    "C,,,": "E1",
-    "C,,,": "F1",
-    "C,,,": "G1",
-    "C,,,": "A1",
-    "C,,,": "B1",
+    "D,,,": "D1",
+    "E,,,": "E1",
+    "F,,,": "F1",
+    "G,,,": "G1",
+    "A,,,": "A1",
+    "B,,,": "B1",
     "C,,": "C2",
-    "C,,": "D2",
-    "C,,": "E2",
-    "C,,": "F2",
-    "C,,": "G2",
-    "C,,": "A2",
-    "C,,": "B2",
+    "D,,": "D2",
+    "E,,": "E2",
+    "F,,": "F2",
+    "G,,": "G2",
+    "A,,": "A2",
+    "B,,": "B2",
     "C,": "C3",
-    "C,": "D3",
-    "C,": "E3",
-    "C,": "F3",
-    "C,": "G3",
-    "C,": "A3",
-    "C,": "B3",
+    "D,": "D3",
+    "E,": "E3",
+    "F,": "F3",
+    "G,": "G3",
+    "A,": "A3",
+    "B,": "B3",
     C: "C4",
     D: "D4",
     E: "E4",
@@ -60,26 +59,26 @@ const parseNoteFormat = (note, duration) => {
     "a'''": "A8",
     "b'''": "B8",
     "_C,,,": "C1b",
-    "_C,,,": "D1b",
-    "_C,,,": "E1b",
-    "_C,,,": "F1b",
-    "_C,,,": "G1b",
-    "_C,,,": "A1b",
-    "_C,,,": "B1b",
+    "_D,,,": "D1b",
+    "_E,,,": "E1b",
+    "_F,,,": "F1b",
+    "_G,,,": "G1b",
+    "_A,,,": "A1b",
+    "_B,,,": "B1b",
     "_C,,": "C2b",
-    "_C,,": "D2b",
-    "_C,,": "E2b",
-    "_C,,": "F2b",
-    "_C,,": "G2b",
-    "_C,,": "A2b",
-    "_C,,": "B2b",
+    "_D,,": "D2b",
+    "_E,,": "E2b",
+    "_F,,": "F2b",
+    "_G,,": "G2b",
+    "_A,,": "A2b",
+    "_B,,": "B2b",
     "_C,": "C3b",
-    "_C,": "D3b",
-    "_C,": "E3b",
-    "_C,": "F3b",
-    "_C,": "G3b",
-    "_C,": "A3b",
-    "_C,": "B3b",
+    "_D,": "D3b",
+    "_E,": "E3b",
+    "_F,": "F3b",
+    "_G,": "G3b",
+    "_A,": "A3b",
+    "_B,": "B3b",
     _C: "C4b",
     _D: "D4b",
     _E: "E4b",
@@ -116,26 +115,26 @@ const parseNoteFormat = (note, duration) => {
     "_a'''": "A8b",
     "_b'''": "B8b",
     "^C,,,": "C1#",
-    "^C,,,": "D1#",
-    "^C,,,": "E1#",
-    "^C,,,": "F1#",
-    "^C,,,": "G1#",
-    "^C,,,": "A1#",
-    "^C,,,": "B1#",
+    "^D,,,": "D1#",
+    "^E,,,": "E1#",
+    "^F,,,": "F1#",
+    "^G,,,": "G1#",
+    "^A,,,": "A1#",
+    "^B,,,": "B1#",
     "^C,,": "C2#",
-    "^C,,": "D2#",
-    "^C,,": "E2#",
-    "^C,,": "F2#",
-    "^C,,": "G2#",
-    "^C,,": "A2#",
-    "^C,,": "B2#",
+    "^D,,": "D2#",
+    "^E,,": "E2#",
+    "^F,,": "F2#",
+    "^G,,": "G2#",
+    "^A,,": "A2#",
+    "^B,,": "B2#",
     "^C,": "C3#",
-    "^C,": "D3#",
-    "^C,": "E3#",
-    "^C,": "F3#",
-    "^C,": "G3#",
-    "^C,": "A3#",
-    "^C,": "B3#",
+    "^D,": "D3#",
+    "^E,": "E3#",
+    "^F,": "F3#",
+    "^G,": "G3#",
+    "^A,": "A3#",
+    "^B,": "B3#",
     "^C": "C4#",
     "^D": "D4#",
     "^E": "E4#",
@@ -171,142 +170,161 @@ const parseNoteFormat = (note, duration) => {
     "^g'''": "G8#",
     "^a'''": "A8#",
     "^b'''": "B8#",
+    "=C,,,": "C1=",
+    "=D,,,": "D1=",
+    "=E,,,": "E1=",
+    "=F,,,": "F1=",
+    "=G,,,": "G1=",
+    "=A,,,": "A1=",
+    "=B,,,": "B1=",
+    "=C,,": "C2=",
+    "=D,,": "D2=",
+    "=E,,": "E2=",
+    "=F,,": "F2=",
+    "=G,,": "G2=",
+    "=A,,": "A2=",
+    "=B,,": "B2=",
+    "=C,": "C3=",
+    "=D,": "D3=",
+    "=E,": "E3=",
+    "=F,": "F3=",
+    "=G,": "G3=",
+    "=A,": "A3=",
+    "=B,": "B3=",
+    "=C": "C4=",
+    "=D": "D4=",
+    "=E": "E4=",
+    "=F": "F4=",
+    "=G": "G4=",
+    "=A": "A4=",
+    "=B": "B4=",
+    "=c": "C5=",
+    "=d": "D5=",
+    "=e": "E5=",
+    "=f": "F5=",
+    "=g": "G5=",
+    "=a": "A5=",
+    "=b": "B5=",
+    "=c'": "C6=",
+    "=d'": "D6=",
+    "=e'": "E6=",
+    "=f'": "F6=",
+    "=g'": "G6=",
+    "=a'": "A6=",
+    "=b'": "B6=",
+    "=c''": "C7=",
+    "=d''": "D7=",
+    "=e''": "E7=",
+    "=f''": "F7=",
+    "=g''": "G7=",
+    "=a''": "A7=",
+    "=b''": "B7=",
+    "=c'''": "C8=",
+    "=d'''": "D8=",
+    "=e'''": "E8=",
+    "=f'''": "F8=",
+    "=g'''": "G8=",
+    "=a'''": "A8=",
+    "=b'''": "B8=",
     z: "P",
   };
 
-  const parsedNote = noteMapping[note] || note;
+  const parsedNote1 = noteMapping[note1] || note1;
+  const parsedNote2 = noteMapping[note2] || note2;
+  const parsedNote3 = noteMapping[note3] || note3;
 
   // Format the duration according to your requirements:
   const durationMapping = {
-    8: 4,
-    4: 2,
-    2: 1,
-    1: 0.5,
-    "/2": 0.25,
-    9: 6,
+    8: 8,
+    4: 4,
+    2: 2,
+    "3/2": 1.5,
+    1: 1,
+    0.5: 0.5,
+    "/4": 0.25,
   };
-  let parsedDuration;
-  switch (duration) {
-    case "1":
-      parsedDuration = "1"; // nốt đen
-      break;
-    case "2":
-      parsedDuration = "2"; // nốt trắng
-      break;
-    case "4":
-      parsedDuration = "4"; // nốt tròn
-      break;
-    case "0.5":
-      parsedDuration = "0.5"; // móc đơn
-      break;
-    default:
-      parsedDuration = duration;
-      break;
-  }
 
-  return `${parsedNote}_${parsedDuration}`;
+  const parsedDuration = durationMapping[duration] || duration;
+
+  return `${parsedNote1}${parsedNote2}${parsedNote3}_${parsedDuration}`;
 };
 
-const SheetEditor = ({
-  Rightnotes,
-  Leftnotes,
-  topSignature,
-  bottomSignature,
-}) => {
-  const abcRef = useRef(null);
-  const audioRef = useRef(null);
-  const visualObjRef = useRef(null);
-  const synthControlRef = useRef(null);
-  const [Notation, setNotation] = useState("");
+const SheetEditor = ({ Rightnotes, Leftnotes }) => {
   const [Rightsymbol, setRightSymbol] = useState("");
   const [Leftsymbol, setLeftSymbol] = useState("");
 
+  function parseNotes(groupsOfNotes) {
+    return groupsOfNotes
+      .map((groupOrNote) => {
+        // Check if the item is a bar symbol
+        if (
+          typeof groupOrNote === "string" &&
+          ["|", "|$", "|:", ":|"].includes(groupOrNote)
+        ) {
+          return "/";
+        }
+
+        // Check if the item is an array (a group of notes)
+        if (Array.isArray(groupOrNote)) {
+          return groupOrNote
+            .map((note, index) => {
+              const parsedNote = parseNoteFormat(
+                note.note1,
+                note.note2,
+                note.note3,
+                note.duration
+              );
+              return parsedNote;
+            })
+            .join(" "); // Join notes in the group without extra space between them
+        }
+
+        // Handle individual note objects that are not inside an array
+        if (typeof groupOrNote === "object" && groupOrNote !== null) {
+          return parseNoteFormat(
+            groupOrNote.note1,
+            groupOrNote.note2,
+            groupOrNote.note3,
+            groupOrNote.duration
+          ).trim();
+        }
+
+        return null; // Fallback for unexpected types
+      })
+      .join(" "); // Join all groups and symbols together
+  }
+
   useEffect(() => {
-    const abcNotation =
-      `X:1\nT:Chubin\nM:${topSignature}/${bottomSignature}\nL:1/8\nC:Jutin Đỗ\nQ:1/2=100\nK:Emin\nV:1\n` +
-      Rightnotes.map((note) =>
-        note === "|"
-          ? "|"
-          : note === "\n"
-          ? "\n"
-          : `${note.note}${note.duration}`
-      ).join("") +
-      `\nV:2\n` +
-      Leftnotes.map((note) =>
-        note === "|"
-          ? "|"
-          : note === "\n"
-          ? "\n"
-          : `${note.note}${note.duration}`
-      ).join("");
-
-    const parseRightSymbol = Rightnotes.map((note, index) => {
-      const parsedNote =
-        note === "|"
-          ? "/"
-          : note === "\n"
-          ? ""
-          : parseNoteFormat(note.note, note.duration);
-      // Check if previous or next note is a bar ("/")
-      if (
-        note === "|" ||
-        (Rightnotes[index - 1] && Rightnotes[index + 1] === "|")
-      ) {
-        return parsedNote;
-      } else {
-        return parsedNote + " ";
-      }
-    }).join("");
-
-    const parseLeftSymbol = Leftnotes.map((note, index) => {
-      const parsedNote =
-        note === "|"
-          ? "/"
-          : note === "\n"
-          ? ""
-          : parseNoteFormat(note.note, note.duration);
-      // Check if previous or next note is a bar ("/")
-      if (
-        note === "|" ||
-        (Leftnotes[index - 1] && Leftnotes[index + 1] === "|")
-      ) {
-        return parsedNote;
-      } else {
-        return parsedNote + " ";
-      }
-    }).join("");
-
-    setRightSymbol(parseRightSymbol);
-    setLeftSymbol(parseLeftSymbol);
-    setNotation(abcNotation);
-
-    // Render ABC notation
-    visualObjRef.current = abcjs.renderAbc(abcRef.current, abcNotation)[0];
-
-    // Initialize synth controller
-    synthControlRef.current = new abcjs.synth.SynthController();
-    synthControlRef.current.load("#audio", null, {
-      displayRestart: true,
-      displayPlay: true,
-      displayProgress: true,
-    });
-
-    // Set the tune for playback
-    synthControlRef.current.setTune(visualObjRef.current, false);
+    // Debugging statements to track notes and their formats
+    console.log("Right Notes:", Rightnotes);
+    console.log("Left Notes:", Leftnotes);
+  
+    const parsedRightSymbol = parseNotes(Rightnotes);
+    const parsedLeftSymbol = parseNotes(Leftnotes);
+  
+    const formattedRightSymbol = parsedRightSymbol
+      .replace(/ \/\s*/g, "/")
+      .replace(/\s+/g, " ")
+      .trim();
+  
+    const formattedLeftSymbol = parsedLeftSymbol
+      .replace(/ \/\s*/g, "/")
+      .replace(/\s+/g, " ")
+      .trim();
+  
+    setRightSymbol(formattedRightSymbol);
+    setLeftSymbol(formattedLeftSymbol);
+  
+    localStorage.setItem('RightSymbol', formattedRightSymbol);
+    localStorage.setItem('LeftSymbol', formattedLeftSymbol);
   }, [Rightnotes, Leftnotes]);
-
+  
   return (
     <div>
-      <div ref={abcRef}></div>
-      <div id="audio" ref={audioRef}></div>
-      <div>
-        <h3>ABC Notation:</h3>
-        <pre>{Notation}</pre>
-        <h3>Right Symbol:</h3>
-        <pre>{Rightsymbol}</pre>
-        <h3>Left Symbol:</h3>
-        <pre>{Leftsymbol}</pre>
-      </div>
+      <h3>Right Symbol:</h3>
+      <pre>{Rightsymbol}</pre>
+      <h3>Left Symbol:</h3>
+      <pre>{Leftsymbol}</pre>
     </div>
   );
 };

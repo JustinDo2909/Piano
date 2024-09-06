@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-const ProtectedRoute = ({ element: Component, requiredRole,...rest }) => {
+const PrivateRouter = ({ element: Component, ...rest }) => {
   const user = useSelector((state) => state.authUser.authUser);
 
   if (!user.token) {
@@ -14,4 +14,4 @@ const ProtectedRoute = ({ element: Component, requiredRole,...rest }) => {
   return <Component {...rest} />;
 };
 
-export default ProtectedRoute;
+export default PrivateRouter;

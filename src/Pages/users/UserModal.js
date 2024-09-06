@@ -16,16 +16,15 @@ const UsersModal = ({
   handleCloseModal,
   isEditMode,
   currentUser,
-  handleSaveCustomer,
+  handleSaveUser,
   handleChange,
 }) => {
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState("");
 
-  // Update imagePreview when editing
   useEffect(() => {
     if (isEditMode && currentUser?.image) {
-      setImagePreview(`data:image/*;base64,${currentUser.image}`);
+      setImagePreview(currentUser.image);
     }
   }, [isEditMode, currentUser]);
 
@@ -53,36 +52,43 @@ const UsersModal = ({
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result.split(",")[1]; // Get Base64 string
-        setImagePreview(reader.result); // Set preview
-        handleChange({
-          target: {
-            name: "image",
-            value: base64String, // Save Base64 string
-          },
-        });
-      };
-      reader.readAsDataURL(file);
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+      handleChange({
+        target: {
+          name: "image",
+          value: file,
+        },
+      });
     }
   };
+  
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (validate()) {
-      handleSaveCustomer(event);
-    }
+      handleSaveUser(event);
+ };
+
+  const resetForm = () => {
+    setImagePreview("");
+    setErrors({});
+    handleCloseModal();
   };
+
+  const getTextFieldStyle = () => ({
+    mb: 2,
+    '& .MuiInputBase-input': {
+      fontSize: '14px',
+    },
+    '& .MuiOutlinedInput-input': {
+      padding: '12px',
+    },
+  });
 
   return (
     <Modal
       open={isModalVisible}
-      onClose={() => {
-        handleCloseModal();
-        setImagePreview("");
-        setErrors({});
-      }}
+      onClose={resetForm}
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
     >
@@ -97,96 +103,98 @@ const UsersModal = ({
           bgcolor: "background.paper",
           borderRadius: 2,
           boxShadow: 24,
-          p: 4,
+          p: 2,
+          boxSizing: "border-box",
         }}
       >
-        <Typography variant="h5" gutterBottom>
+        <Typography variant="h4" fontFamily="Roboto" mb="5px" gutterBottom>
           {isEditMode ? "Edit User" : "Add New User"}
         </Typography>
         <form onSubmit={handleSubmit}>
-          <Box sx={{ mb: 2 }}>
-            <TextField
-              label="User Name"
-              name="userName"
-              value={currentUser?.userName || ""}
-              onChange={handleChange}
-              fullWidth
-              //   required
-              error={!!errors.userName}
-              helperText={errors.userName}
-            />
-          </Box>
-          <Box sx={{ mb: 2 }}>
-            <TextField
-              label="Email"
-              name="email"
-              value={currentUser?.email || ""}
-              onChange={handleChange}
-              fullWidth
-              //   required
-              error={!!errors.email}
-              helperText={errors.email}
-            />
-          </Box>
-          <Box sx={{ mb: 2 }}>
-            <TextField
-              label={
-                isEditMode
-                  ? "Password(Leave blank if you dont want to change password)"
-                  : "Password"
-              }
-              name="passwordHash"
-              type="password"
-              value={currentUser?.passwordHash || ""}
-              onChange={handleChange}
-              fullWidth
-              //   required
-              error={!!errors.passwordHash}
-              helperText={errors.passwordHash}
-            />
-          </Box>
-          <Box sx={{ mb: 2 }}>
-            <TextField
-              label="Phone Number"
-              name="phoneNumber"
-              value={currentUser?.phoneNumber || ""}
-              onChange={handleChange}
-              fullWidth
-              //   required
-              InputLabelProps={{ shrink: true }}
-              error={!!errors.phoneNumber}
-              helperText={errors.phoneNumber}
-            />
-          </Box>
-          <Box sx={{ mb: 2 }}>
-            <TextField
-              label="Name"
-              name="name"
-              value={currentUser?.name || ""}
-              onChange={handleChange}
-              fullWidth
-              //   required
-              error={!!errors.name}
-              helperText={errors.name}
-            />
-          </Box>
-          <Box sx={{ mb: 2 }}>
-            <TextField
-              label="Date of Birth"
-              name="dateOfBirth"
-              type="date"
-              value={currentUser?.dateOfBirth || ""}
-              onChange={handleChange}
-              fullWidth
-              //   required
-              InputLabelProps={{ shrink: true }}
-              error={!!errors.dateOfBirth}
-              helperText={errors.dateOfBirth}
-            />
-          </Box>
+          <TextField
+            label="User Name"
+            name="userName"
+            value={currentUser?.userName || ""}
+            onChange={handleChange}
+            fullWidth
+            required
+            error={!!errors.userName}
+            helperText={errors.userName}
+            sx={getTextFieldStyle()}
+          />
+
+          <TextField
+            label="Email"
+            name="email"
+            value={currentUser?.email || ""}
+            onChange={handleChange}
+            fullWidth
+            required
+            error={!!errors.email}
+            helperText={errors.email}
+            sx={getTextFieldStyle()}
+          />
+
+          <TextField
+            label={
+              isEditMode
+                ? "Password (Leave blank if you don't want to change it)"
+                : "Password"
+            }
+            name="passwordHash"
+            type="password"
+            value={currentUser?.passwordHash || ""}
+            onChange={handleChange}
+            fullWidth
+            error={!!errors.passwordHash}
+            helperText={errors.passwordHash}
+            sx={getTextFieldStyle()}
+          />
+
+          <TextField
+            label="Phone Number"
+            name="phoneNumber"
+            value={currentUser?.phoneNumber || ""}
+            onChange={handleChange}
+            fullWidth
+            required
+            InputLabelProps={{ shrink: true }}
+            error={!!errors.phoneNumber}
+            helperText={errors.phoneNumber}
+            sx={getTextFieldStyle()}
+          />
+
+          <TextField
+            label="Name"
+            name="name"
+            value={currentUser?.name || ""}
+            onChange={handleChange}
+            fullWidth
+            required
+            error={!!errors.name}
+            helperText={errors.name}
+            sx={getTextFieldStyle()}
+          />
+
+          <TextField
+            label="Date of Birth"
+            name="dateOfBirth"
+            type="date"
+            value={currentUser?.dateOfBirth || ""}
+            onChange={handleChange}
+            fullWidth
+            required
+            InputLabelProps={{ shrink: true }}
+            error={!!errors.dateOfBirth}
+            helperText={errors.dateOfBirth}
+            sx={getTextFieldStyle()}
+          />
+
           {!isEditMode && (
-            <Box sx={{ mb: 2 }}>
-              <FormLabel component="legend">Role: </FormLabel>
+            <Box>
+              <FormLabel component="legend" sx={{ fontSize: "14px" }}>
+                Role:
+              </FormLabel>
               <RadioGroup
                 name="role"
                 value={currentUser?.role || ""}
@@ -217,7 +225,8 @@ const UsersModal = ({
               )}
             </Box>
           )}
-          <Box sx={{ mb: 2 }}>
+
+          <Box>
             <FormLabel component="legend">Upload Image</FormLabel>
             <input
               type="file"
@@ -238,14 +247,23 @@ const UsersModal = ({
               />
             )}
           </Box>
+
           <Button
             type="submit"
             variant="contained"
             color="primary"
             fullWidth
-            sx={{ mt: 2 }}
+            sx={{
+              mt: 2,
+              bgcolor: "#211f65",
+              color: "#eee",
+              "&:hover": {
+                backgroundColor: "#0f0e38",
+                color: "#fff",
+              },
+            }}
           >
-            {isEditMode ? "Update Customer" : "Add Customer"}
+            {isEditMode ? "Update User" : "Add User"}
           </Button>
         </form>
       </Box>

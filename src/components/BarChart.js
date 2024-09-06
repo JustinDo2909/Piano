@@ -1,138 +1,102 @@
-import React from 'react';
-import { ResponsiveBar } from '@nivo/bar';
+import React, { useState, useEffect, useCallback } from "react";
+import { ResponsiveBar } from "@nivo/bar";
+import { getDataDashBoard } from "../util/ApiFunction";
 
-const data = [
-  {
-    "country": "AD",
-    "hot dog": 29,
-    "hot dogColor": "hsl(36, 70%, 50%)",
-    "burger": 80,
-    "burgerColor": "hsl(202, 70%, 50%)",
-    "sandwich": 56,
-    "sandwichColor": "hsl(115, 70%, 50%)",
-    "kebab": 84,
-    "kebabColor": "hsl(287, 70%, 50%)",
-    "fries": 35,
-    "friesColor": "hsl(33, 70%, 50%)",
-    "donut": 86,
-    "donutColor": "hsl(188, 70%, 50%)"
-  },
-  {
-    "country": "AE",
-    "hot dog": 89,
-    "hot dogColor": "hsl(96, 70%, 50%)",
-    "burger": 42,
-    "burgerColor": "hsl(33, 70%, 50%)",
-    "sandwich": 79,
-    "sandwichColor": "hsl(293, 70%, 50%)",
-    "kebab": 62,
-    "kebabColor": "hsl(134, 70%, 50%)",
-    "fries": 45,
-    "friesColor": "hsl(140, 70%, 50%)",
-    "donut": 16,
-    "donutColor": "hsl(318, 70%, 50%)"
-  },
-  // more data points
-];
+const MyBarChart = () => {
+  const [data, setData] = useState([]);
 
-const MyBarChart = () => (
-  <ResponsiveBar
-    data={data}
-    keys={['hot dog', 'burger', 'sandwich', 'kebab', 'fries', 'donut']}
-    indexBy="country"
-    margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
-    padding={0.3}
-    valueScale={{ type: 'linear' }}
-    indexScale={{ type: 'band', round: true }}
-    colors={{ scheme: 'nivo' }}
-    defs={[
-      {
-        id: 'dots',
-        type: 'patternDots',
-        background: 'inherit',
-        color: '#38bcb2',
-        size: 4,
-        padding: 1,
-        stagger: true
-      },
-      {
-        id: 'lines',
-        type: 'patternLines',
-        background: 'inherit',
-        color: '#eed312',
-        rotation: -45,
-        lineWidth: 6,
-        spacing: 10
-      }
-    ]}
-    fill={[
-      {
-        match: {
-          id: 'fries'
+  const fetchData = useCallback(async () => {
+    try {
+
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const dateEnd = currentDate.toISOString().split('T')[0];
+      const dateStart = new Date(currentDate.setDate(currentDate.getDate() - 7))
+        .toISOString()
+        .split('T')[0];
+
+      const response = await getDataDashBoard(currentYear, dateStart, dateEnd);
+
+      const transformedData = response.playsInYear.map((monthData) => ({
+        month: new Date(2024, monthData.month - 1).toLocaleString('default', { month: 'long' }),
+        numberPlays: monthData?.numberPlays || 0, // Fallback to 0 if numberPlays is null
+      }));
+
+      setData(transformedData);
+    } catch (error) {
+      console.error("Error fetching data: ", error);
+    }
+  }, []);
+
+
+  useEffect(() => {
+    fetchData();
+    console.log(data)
+  }, [fetchData]);
+
+
+  const calculateTickValues = (data, step) => {
+    const max = Math.max(...data.map((d) => d.listens));
+    const values = [];
+    for (let i = 0; i <= max; i += step) {
+      values.push(i);
+    }
+    return values;
+  };
+
+  const tickValues = calculateTickValues(data, 30);
+
+
+  return (
+    <ResponsiveBar
+      data={data}
+      keys={["numberPlays"]}
+      indexBy="month"
+      margin={{ top: 10, right: 10, bottom: 30, left: 30 }}
+      padding={0.5}
+      valueScale={{ type: "linear" }}
+      indexScale={{ type: "band", round: true }}
+      colors={{ datum: "color" }}
+      borderColor={{ from: "color", modifiers: [["darker", 1.6]] }}
+      labelSkipWidth={12}
+      labelSkipHeight={12}
+      labelTextColor={{ from: "#fff", modifiers: [["darker", 1.6]] }}
+      axisLeft={{
+        tickSize: 5,
+        tickPadding: 5,
+        tickRotation: 0,
+        legend: "Number of plays",
+        legendPosition: "middle",
+        legendOffset: -40,
+        tickValues: tickValues,
+      }}
+      gridYValues={tickValues}
+      defs={[
+        {
+          id: "gradientA",
+          type: "linearGradient",
+          colors: [
+            { offset: 0, color: "#535C91" },
+            { offset: 100, color: "#9290C3" },
+          ],
         },
-        id: 'dots'
-      },
-      {
-        match: {
-          id: 'sandwich'
+      ]}
+      fill={[
+        {
+          match: "*",
+          id: "gradientA",
         },
-        id: 'lines'
-      }
-    ]}
-    borderColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
-    axisTop={null}
-    axisRight={null}
-    axisBottom={{
-      tickSize: 5,
-      tickPadding: 5,
-      tickRotation: 0,
-      legend: 'country',
-      legendPosition: 'middle',
-      legendOffset: 32
-    }}
-    axisLeft={{
-      tickSize: 5,
-      tickPadding: 5,
-      tickRotation: 0,
-      legend: 'food',
-      legendPosition: 'middle',
-      legendOffset: -40
-    }}
-    labelSkipWidth={12}
-    labelSkipHeight={12}
-    labelTextColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
-    legends={[
-      {
-        dataFrom: 'keys',
-        anchor: 'bottom-right',
-        direction: 'column',
-        justify: false,
-        translateX: 120,
-        translateY: 0,
-        itemsSpacing: 2,
-        itemWidth: 100,
-        itemHeight: 20,
-        itemDirection: 'left-to-right',
-        itemOpacity: 0.85,
-        symbolSize: 20,
-        effects: [
-          {
-            on: 'hover',
-            style: {
-              itemOpacity: 1
-            }
-          }
-        ]
-      }
-    ]}
-    animate={true}
-    motionStiffness={90}
-    motionDamping={15}
-  />
-);
+      ]}
+      borderRadius={2}
+      animate={true}
+      motionStiffness={90}
+      motionDamping={15}
+    />
+  );
+};
 
 const BarChart = () => (
-  <div style={{ height: '500px' }}>
+  <div style={{ height: "160px", width: "100%" }}>
     <MyBarChart />
   </div>
 );

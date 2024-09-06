@@ -14,27 +14,19 @@ const ZingChart = ({ data, chartData, isNonMediumScreens }) => {
   return (
     <Box
       gridColumn="span 16"
-      gridRow={isNonMediumScreens ? "span 5" : "span 7"}
+      gridRow={isNonMediumScreens ? "span 4" : "span 5"}
       sx={{
         backgroundColor: "#1B1A55",
         color: "white",
         fontFamily: "Arial, sans-serif",
         borderRadius: 2,
-        padding: 3,
-        // width: "100rem",
-        // maxWidth: 1000,
+        padding: 1.5,
+        boxShadow: " -1px 1px 5px #89a",
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <Typography variant="h4">#Top Song</Typography>
-      </Box>
-      <Grid container spacing={3} sx={{ marginTop: 2 }}>
+      <Typography variant="h5">#Top Song</Typography>
+
+      <Grid container sx={{ marginTop: 4, height: "auto" }}>
         <Grid item xs={12} sm={4}>
           <Box
             sx={{
@@ -53,7 +45,6 @@ const ZingChart = ({ data, chartData, isNonMediumScreens }) => {
                   borderRadius: 1,
                   padding: "10px 15px",
                   color: "white",
-                  // width: "100%",
                 }}
               >
                 <Typography
@@ -116,7 +107,7 @@ const ZingChart = ({ data, chartData, isNonMediumScreens }) => {
           </Box>
         </Grid>
         <Grid item xs={12} sm={8}>
-          <Box sx={{ height: 400 }}>
+          <Box sx={{ height: "350px" }}>
             <ResponsiveLine
               data={chartData}
               theme={{
@@ -152,7 +143,7 @@ const ZingChart = ({ data, chartData, isNonMediumScreens }) => {
                   },
                 },
               }}
-              margin={{ top: 50, right: 50, bottom: 70, left: 60 }}
+              margin={{ top: 10, right: 50, bottom: 50, left: 60 }}
               xScale={{ type: "point" }}
               yScale={{
                 type: "linear",
@@ -192,19 +183,19 @@ const ZingChart = ({ data, chartData, isNonMediumScreens }) => {
               pointLabelYOffset={-12}
               useMesh={true}
               legends={[]}
-            // theme={{
-            //   textColor: "#fff",
-            //   axis: {
-            //     ticks: {
-            //       line: {
-            //         stroke: "#555555",
-            //       },
-            //       text: {
-            //         fill: "#fff",
-            //       },
-            //     },
-            //   },
-            // }}
+              // theme={{
+              //   textColor: "#fff",
+              //   axis: {
+              //     ticks: {
+              //       line: {
+              //         stroke: "#555555",
+              //       },
+              //       text: {
+              //         fill: "#fff",
+              //       },
+              //     },
+              //   },
+              // }}
             />
           </Box>
         </Grid>

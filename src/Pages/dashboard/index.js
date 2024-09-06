@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import BarChart from "../../components/BarChart";
 import StatBox from "../../components/StatBox";
-import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
+import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
+import PersonPinIcon from '@mui/icons-material/PersonPin';
+import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
+import SubscriptionsOutlinedIcon from '@mui/icons-material/SubscriptionsOutlined';
+import { getDataDashBoard } from "../../util/ApiFunction";
 import {
   Box,
   Card,
@@ -92,21 +96,39 @@ const chartData = [
 
 const Home = () => {
   const isNonMediumScreens = useMediaQuery("(min-width: 1200px)");
+  const [dataStat, setDataStat] = useState([]);
+
+  const fetchDataStat = useCallback(async () => {
+    try {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const dateEnd = currentDate.toISOString().split('T')[0];
+      const dateStart = new Date(currentDate.setDate(currentDate.getDate() - 7))
+        .toISOString()
+        .split('T')[0];
+
+      const response = await getDataDashBoard(currentYear, dateStart, dateEnd);
+      setDataStat(response)
+    } catch (error) {
+      console.error("Error fetching data: ", error);
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchDataStat();
+  }, [fetchDataStat]);
 
   return (
-    <Box sx={{ padding: "1rem" }}>
+    <Box>
       <Box
         sx={{
-          padding: "1rem",
-          boxShadow: "-3px 4px 6.8px 5px #00000040",
-          background: "#535C91",
-          borderRadius: "8px",
+          padding: "1.5rem"
         }}
       >
         <Box
           display="grid"
           gridTemplateColumns="repeat(16, 1fr)"
-          gridAutoRows="100px"
+          gridAutoRows="90px"
           gap="20px"
           sx={{
             "& > div": {
@@ -114,11 +136,19 @@ const Home = () => {
             },
           }}
         >
-          <StatBox icon={LibraryMusicIcon} title={"Artists"} value={"24"} />
           <StatBox
-            icon={LibraryMusicIcon}
+            icon={<PersonPinIcon
+              sx={{ fontSize: "34px", color: "#83e" }}
+            />}
+            title={"Artists"}
+            value={dataStat.artistNumber || 0}
+          />
+          <StatBox
+            icon={<LibraryMusicIcon
+              sx={{ fontSize: "34px", color: "#83e" }}
+            />}
             title={"Total of music"}
-            value={"128"}
+            value={dataStat.numberSong || 0}
           />
 
           <Box
@@ -128,28 +158,29 @@ const Home = () => {
               borderRadius: "10px",
               backgroundColor: "white",
               padding: "10px",
+              boxShadow: " -1px 1px 5px #89a",
+              overflow: "hidden",
+              boxSizing: "border-box"
             }}
           >
-            {/* <BarChart /> */}
+            <Typography variant="h5">Total plays</Typography>
+            <BarChart />
           </Box>
 
           <StatBox
-            icon={LibraryMusicIcon}
+            icon={<SubscriptionsOutlinedIcon
+              sx={{ fontSize: "34px", color: "#83e" }}
+            />}
             title={"Total of plays"}
-            value={"1028"}
+            value={dataStat.numberPlays || 0}
           />
           <StatBox
-            icon={LibraryMusicIcon}
-            title={"Total time played"}
-            value={"1920.6 hours"}
+            icon={<PersonOutlineOutlinedIcon
+              sx={{ fontSize: "34px", color: "#83e" }}
+            />}
+            title={"Total of user"}
+            value={dataStat.userNumber || 0}
           />
-          {/* <Card sx={{ p: "1rem", gridColumn: "span 12", gridRow: "span 2" }}>
-            <Typography variant="h6" gutterBottom>
-              Most Played Songs
-            </Typography>
-            <PieChart isDashboard={true} />
-          </Card> */}
-
           <ZingChart
             data={data}
             chartData={chartData}

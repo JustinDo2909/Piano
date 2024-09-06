@@ -23,6 +23,8 @@
     "browserify-zlib": "^0.2.0",
     "chart.js": "^4.4.3",
     "https-browserify": "^1.0.0",
+    "jquery": "^3.7.1",
+    "jszip": "^3.10.1",
     "midi-file": "^1.2.4",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.2.0",
@@ -40,7 +42,8 @@
     "tone": "^15.0.4",
     "url": "^0.11.4",
     "util": "^0.12.5",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xml2abc": "https://wim.vree.org/js/xml2abc.tgz"
   },
   "scripts": {
     "start": "react-scripts start",

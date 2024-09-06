@@ -1,46 +1,49 @@
-import React, { useEffect, useState } from "react";
-import backGround from "../../image/3766921.jpg";
 import {
   Box,
   Button,
   Card,
   CardContent,
+  CardMedia,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  DialogContentText,
   Grid,
   TextField,
   Typography,
-  CardActions,
-  openDialog,
-  DialogContentText,
-  setSnackbarMessage,
-  setSnackbarType,
-  setSnackbarOpen
 } from "@mui/material";
-import { QueueMusic, ModeEdit, DeleteOutlined } from "@mui/icons-material";
-import { getGenre, updateGenre, createGenre, deleteGenreById } from "../../util/ApiFunction";
+import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
+import { ModeEdit, DeleteOutline } from "@mui/icons-material";
+import { useEffect, useState } from "react";
+import {
+  getInstrument,
+  createInstrument,
+  updateInstrument,
+  deleteInstrumentById,
+} from "../../util/ApiFunction";
+import instrumentTitle from "../../image/instrumentTitle.png";
 import { SnackBar } from "../../components/Snackbar";
 import FlexBetween from "../../components/FlexBetween";
+import { minWidth, width } from "@mui/system";
 
-const TypeMusic = ({ isSidebarOpen, setIsSidebarOpen }) => {
+const Instrument = () => {
   const [error, setError] = useState("");
-  const [genres, setGenres] = useState([]);
-  const [newGenre, setNewGenre] = useState(null);
+  const [instruments, setInstruments] = useState([]);
   const [open, setOpen] = useState(false);
+  const [newInstrument, setNewInstrument] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarType, setSnackbarType] = useState("");
-  const [genreToDelete, setGenreToDelete] = useState(null)
   const [openDialog, setOpenDialog] = useState(false);
+  const [instrumentToDelete, setInstrumentToDelete] = useState(null);
 
-  const fetchGenre = async () => {
+  const fetchInstrument = async () => {
     try {
-      const result = await getGenre();
+      const result = await getInstrument();
       if (result && result.data) {
-        setGenres(result.data);
+        setInstruments(result.data);
       }
     } catch (error) {
       setError(error.message);
@@ -51,19 +54,18 @@ const TypeMusic = ({ isSidebarOpen, setIsSidebarOpen }) => {
   };
 
   useEffect(() => {
-    fetchGenre();
+    fetchInstrument();
   }, []);
 
-  const handleClickOpen = (genre = null) => {
-    setIsEditMode(!!genre);
-    setNewGenre(
-      genre
+  const handleClickOpen = (instrument = null) => {
+    setIsEditMode(!!instrument);
+    setNewInstrument(
+      instrument
         ? {
-          ...genre,
+          ...instrument,
         }
         : {
           name: "",
-          description: ""
         }
     );
     setOpen(true);
@@ -78,39 +80,34 @@ const TypeMusic = ({ isSidebarOpen, setIsSidebarOpen }) => {
   };
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
-    setNewGenre((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    setNewInstrument({ ...newInstrument, name: event.target.value });
   };
 
-  const handleGenre = async (event) => {
+  const handleAddInstrument = async (event) => {
     event.preventDefault();
     try {
       if (isEditMode) {
-        console.log(newGenre);
-        const result = await updateGenre(newGenre);
-        console.log(result)
-        if (result && result.message) {
-          fetchGenre();
-          setSnackbarMessage("Genre Edited successfully.");
-          setSnackbarType("success");
-          handleClose(); // Close dialog after successful edition
-        }
-      } else {
-        console.log(newGenre);
-        const result = await createGenre(newGenre);
-        if (result && result.message) {
-          fetchGenre();
-          setSnackbarMessage("Genre Added successfully.");
+        console.log(newInstrument);
+        const result = await updateInstrument(newInstrument);
+        if (result && result.data) {
+          fetchInstrument();
+          setSnackbarMessage("Instrument Edited successfully.");
           setSnackbarType("success");
           handleClose(); // Close dialog after successful addition
+        }
+      } else {
+        console.log(newInstrument);
+        const result = await createInstrument(newInstrument);
+        if (result && result.data) {
+          fetchInstrument();
+          setSnackbarMessage("Instrument Added successfully.");
+          setSnackbarType("success");
+          handleClose(); // Close dialog after successful edition
         }
       }
     } catch (error) {
       setSnackbarMessage(
-        isEditMode ? "Error Update Genre!!" : "Error Add Genre!!"
+        isEditMode ? "Error Update Instrument!!" : "Error Add Instrument!!"
       );
       setSnackbarType("error");
     } finally {
@@ -120,36 +117,37 @@ const TypeMusic = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
   const handleDelete = async () => {
     try {
-      const result = await deleteGenreById(genreToDelete);
+      const result = await deleteInstrumentById(instrumentToDelete);
       if (result !== undefined) {
-        fetchGenre();
+        fetchInstrument();
         handleCloseDialog();
         setSnackbarMessage(
-          `Genre ${genreToDelete} deleted successfully.`
+          `Instrument ${instrumentToDelete} deleted successfully.`
         );
         setSnackbarType("success");
         setSnackbarOpen(true);
       }
     } catch (error) {
-      setSnackbarMessage("Error Delete Genre!!!");
+      setSnackbarMessage("Error Delete Instrument!!!");
       setSnackbarType("error");
     } finally {
       setSnackbarOpen(true);
     }
   };
 
-  const handleOpenDialog = (genre) => {
-    setGenreToDelete(genre.id);
+  const handleOpenDialog = (instrument) => {
+    setInstrumentToDelete(instrument.id);
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setGenreToDelete(null);
+    setInstrumentToDelete(null);
   };
 
   const getTextFieldStyle = () => ({
     mb: 2,
+    minWidth: "350px",
     '& .MuiInputBase-input': {
       fontSize: '14px',
     },
@@ -161,19 +159,16 @@ const TypeMusic = ({ isSidebarOpen, setIsSidebarOpen }) => {
   return (
     <Box
       sx={{
-        background: `url(${backGround}) no-repeat center center fixed`,
-        minHeight: "calc(100vh - 96px)", // Chiều cao chiếm 1 phần nội dung màn hình
+        height: "auto",
         padding: 2
-      }}
-    >
+      }}>
       <Box
         style={{
           padding: 16,
           background: "rgba(255, 255, 255, 0.8)",
           borderRadius: "5px",
           boxSizing: "border-box",
-        }}
-      >
+        }}>
         <SnackBar
           open={snackbarOpen}
           type={snackbarType}
@@ -185,10 +180,11 @@ const TypeMusic = ({ isSidebarOpen, setIsSidebarOpen }) => {
             mb: "10px"
           }}>
           <Typography variant="h4" gutterBottom>
-            Manage Music Genres
+            Manage Instrument
           </Typography>
           <Button
             variant="contained"
+            endIcon={<LibraryMusicIcon />}
             onClick={() => handleClickOpen()}
             sx={{
               color: "black",
@@ -206,90 +202,69 @@ const TypeMusic = ({ isSidebarOpen, setIsSidebarOpen }) => {
               },
             }}
           >
-            Add Genre
-            <QueueMusic />
+            Add Instrument
           </Button>
         </FlexBetween>
 
         <Grid container spacing={2}>
-          {genres.map((item) => (
-            <Grid item key={item.id} xs={12} sm={6} md={4}>
+          {instruments.map((instrument , index) => (
+            <Grid item xs={6} sm={6} md={3} key={index}>
               <Card
                 sx={{
-                  position: "relative",
-                  background: `url(${backGround}) no-repeat center center`,
-                  backgroundSize: "cover",
-                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
                   height: "100%",
-                  overflow: "hidden",
+                  boxSizing: "border-box"
                 }}
               >
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: "rgba(0, 0, 0, 0.6)",
-                    zIndex: 1,
-                    pointerEvents: "none",
-                  }}
+                <CardMedia
+                  component="img"
+                  height="100"
+                  image={instrumentTitle}
+                  alt="Instruments"
+                  sx={{ width: "100px", objectFit: "contain" }}
                 />
-                <CardContent sx={{
-                  position: "relative",
-                  zIndex: 2,
-
-                }}>
-                  <Box sx={{
-                    maxWidth: "60%",
-                    position: "absolute",
-                    top: "50%",
-                    left: "20%",
-                    transform: "translate(-50%, -50%)",
-                  }}>
-                    <Typography variant="h4" fontFamily="Roboto" gutterBottom>
-                      {item.name}
-                    </Typography>
-                    <Typography variant="body2" textAlign="center" textOverflow="ellipsis" gutterBottom>
-                      {item.description}
-                    </Typography>
-
-                  </Box>
-                  <CardActions
+                <CardContent
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-around",
+                    p: 1,
+                    pb: " 12px !important",
+                    width: "100%",
+                  }}
+                >
+                  <Typography sx={{ fontSize: "12px" }}> Instrument:</Typography>
+                  <Typography variant="h4">{instrument.name}</Typography>
+                  <DialogActions
                     sx={{
-                      position: "relative",
-                      zIndex: 2,
-                      justifyContent: "flex-end",
-                    }}
-                  >
+                      justifyContent: "flex-start",
+                      p: 0,
+                      mt: 1
+                    }}>
                     <Button
-                      onClick={() => handleClickOpen(item)}
+                      onClick={() => handleClickOpen(instrument)}
+                      color="primary"
                       sx={{
                         borderRadius: 20,
                         border: "1px solid green",
                         bgcolor: "#eeea"
                       }}
                     >
-                      <ModeEdit
-                        sx={{
-                          color: "#2f2"
-                        }} />
+                      <ModeEdit sx={{ color: "#2f2", fontSize: "12px" }} />
                     </Button>
                     <Button
-                      onClick={() => handleOpenDialog(item)}
+                      onClick={() => handleOpenDialog(instrument)}
                       sx={{
                         borderRadius: 20,
                         border: "1px solid red",
                         bgcolor: "#eeea"
                       }}
                     >
-                      <DeleteOutlined
-                        sx={{
-                          color: "#f22"
-                        }} />
+                      <DeleteOutline sx={{ color: "#f22", fontSize: "12px" }} />
                     </Button>
-                  </CardActions>
+
+                  </DialogActions>
                 </CardContent>
               </Card>
             </Grid>
@@ -297,35 +272,25 @@ const TypeMusic = ({ isSidebarOpen, setIsSidebarOpen }) => {
         </Grid>
       </Box>
 
-      <Dialog open={open} onClose={handleClose}
-        sx={{ boxSizing: "border-box" }}>
+      <Dialog open={open} onClose={handleClose}>
+
         <Typography variant="h4" fontFamily="Roboto"
           sx={{ p: 2 }}>
-          {isEditMode ? "Edit Genre" : "Add Genre"}
+          {isEditMode ? "Edit Instrument" : "Add Instrument"}
         </Typography>
-        <DialogContent sx={{ p: "10px 20px" }}>
-
+        <DialogContent>
           <TextField
             autoFocus
-            label="Genre Name"
-            name="name"
+            label="Instrument Name"
+            type="text"
             fullWidth
-            value={newGenre?.name || ""}
-            onChange={(e) => handleChange(e)}
-            sx={getTextFieldStyle()}
-          />
-          <TextField
-            autoFocus
-            label="Genre description"
-            name="description"
-            fullWidth
-            value={newGenre?.description || ""}
-            onChange={(e) => handleChange(e)}
+            value={newInstrument?.name}
+            onChange={handleChange}
             sx={getTextFieldStyle()}
           />
           {error && <div style={{ color: "red" }}>{error}</div>}
           <DialogActions>
-            <Button onClick={handleClose} color="primary"
+            <Button onClick={handleClose}
               sx={{
                 border: "1px solid black",
                 bgcolor: "inherit",
@@ -336,7 +301,7 @@ const TypeMusic = ({ isSidebarOpen, setIsSidebarOpen }) => {
               }}>
               Cancel
             </Button>
-            <Button onClick={(e) => handleGenre(e)} color="primary"
+            <Button onClick={(e) => handleAddInstrument(e)}
               sx={{
                 bgcolor: "#211f65",
                 color: "#eee",
@@ -367,7 +332,7 @@ const TypeMusic = ({ isSidebarOpen, setIsSidebarOpen }) => {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Do you really want to delete this genre?
+            Do you really want to delete this instrument?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -404,4 +369,4 @@ const TypeMusic = ({ isSidebarOpen, setIsSidebarOpen }) => {
   );
 };
 
-export default TypeMusic;
+export default Instrument;
